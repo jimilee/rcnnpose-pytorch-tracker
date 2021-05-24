@@ -21,6 +21,7 @@ python setup.py install
 cd examples
 python image_demo.py
 python video_demo.py
+python tracker_demo.py
 ```
 
 ## License
