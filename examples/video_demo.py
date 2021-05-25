@@ -18,7 +18,7 @@ while videoclip.isOpened():
     pred_dict = estimator(frame, masks=False, keypoints=True)
     # print(pred_dict['estimator_k'])
     boxes = estimator.get_boxes(pred_dict['estimator_k'], score_threshold=0.5)
-    # print(pred_dict['estimator_k']['boxes'])
+    print(boxes)
     # masks = estimator.get_masks(pred_dict['estimator_m'], score_threshold=0.80)
     # keypoints = estimator.get_keypoints(pred_dict['estimator_k'], score_threshold=0.8)
     # for i in (pred_dict['estimator_k']['labels'] > 0).nonzero().view(-1):
