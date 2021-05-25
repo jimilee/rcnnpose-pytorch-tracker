@@ -80,7 +80,7 @@ class BodyPoseEstimator(object):
     def get_boxes(dictionary, label=1, score_threshold=0.5):
         boxes = []
         if dictionary:
-            print(dictionary)
+            # print(dictionary)
             for i in (dictionary['labels'] == label).nonzero().view(-1):
                 if dictionary['scores'][i] > score_threshold:
                     box = dictionary['boxes'][i].detach().cpu().squeeze().numpy()

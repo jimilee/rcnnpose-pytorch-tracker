@@ -7,7 +7,6 @@ GitHub: https://github.com/prasunroy/rcnnpose-pytorch
 
 """
 
-
 import cv2
 import numpy as np
 
@@ -87,7 +86,8 @@ def draw_boxes(image, boxes, thickness=1, alpha=1.0):
         overlay = _draw_box(overlay, box[:2], box[2:], (0, 255, 0), thickness)
     return cv2.addWeighted(overlay, alpha, image, 1.0 - alpha, 0)
 
-def draw_tracker_boxes(image, trackers, thickness=1, alpha=1.0):
+
+def draw_tracker_boxes(image, trackers, thickness=2, alpha=1.0):
     overlay = image.copy()
     for trk in trackers:
         overlay = _draw_box(overlay, trk['box'][:2], trk['box'][2:], trk['rgb'], thickness)
