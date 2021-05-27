@@ -150,7 +150,7 @@ class simple_tracker():
             feat = src[y1:y2, x1:x2]
 
             det_hist = self.cal_histogram(feat)
-            # print(len(det_hist))
+            print(len(det_boxes))
             det_data = {'id': -1,
                         'frame': frame_cnt,
                         'box': det,
@@ -162,7 +162,8 @@ class simple_tracker():
                 continue
 
             for j, trk in self.trackers.items():
-                score_matrix[j][i] = float(1 - ((self.euclid_sim(det_data['feat'], self.trackers[j]['feat']))*0.5 + (self.dist_sim(det_data['box'], self.trackers[j]['box']))*0.5))
+                if self.trackers[j]['stat']:
+                    score_matrix[j][i] = float(1 - ((self.euclid_sim(det_data['feat'], self.trackers[j]['feat']))*0.5 + (self.dist_sim(det_data['box'], self.trackers[j]['box']))*0.5))
             target_det.append(det_data)
 
         print('=====================================================================================')

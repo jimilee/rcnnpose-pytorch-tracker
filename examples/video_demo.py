@@ -9,7 +9,7 @@ from rcnnpose.utils import draw_body_connections, draw_keypoints, draw_masks, _d
 from examples.tracker_demo import simple_tracker
 
 estimator = BodyPoseEstimator(pretrained=True)
-videoclip = cv2.VideoCapture('media/demo_video.mp4')
+videoclip = cv2.VideoCapture('media/test.mp4')
 total_proctime = 0.0
 st = simple_tracker()
 
