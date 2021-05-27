@@ -1,7 +1,7 @@
 
 # RCNNPose PyTorch + Tracker
 **Mask R-CNN and Keypoint R-CNN wrapper for pose estimation with PyTorch.**
- https://github.com/prasunroy/rcnnpose-pytorch
+
 ## Installation
 #### Prerequisites
 * Install [PyTorch](https://pytorch.org/get-started/locally/) `>= 1.2` with [torchvision](https://pytorch.org/get-started/locally/) `>= 0.4`
