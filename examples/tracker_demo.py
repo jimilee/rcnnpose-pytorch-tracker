@@ -161,11 +161,10 @@ class simple_tracker():
         return trans_target
 
     def simsiam_sim_score(self, target):
+        sim_score = []
         target_trk = [state['feat'].unsqueeze(0) for id, state in self.trackers.items() if state['stat'] is True]
         len_trk = len(target_trk)
-        sim_score = []
-        # dist_score = np.ones(shape=(len_trk,), dtype=np.float32)
-        # euclid_score = np.ones(shape=(len_trk,), dtype=np.float32)
+
         if(len_trk > 0):
             trackers = torch.cat(target_trk, dim=0).cuda(non_blocking=True)
             ass_mat = self.simsiam.get_association_matrix(self.simsiam.backbone(), trackers, target.unsqueeze(0).cuda(non_blocking=True), k=min(len_trk, 5))
@@ -173,24 +172,6 @@ class simple_tracker():
             sim_score = f.normalize(ass_mat['scores'], dim=1).squeeze().tolist()
             print(sim_score)
         return sim_score
-        # for j, trk in enumerate(target_trk):
-        #     # print(target)
-        #
-        #     sim.append(self.dist_sim(target['box'], trk['box']))
-        #     euclid.append(self.euclid_sim(target['feat'], trk['feat']))
-        #
-        # if (len(dist) > 0):
-        #     dist = np.array(dist).reshape(len(dist), 1)
-        #     euclid = np.array(euclid).reshape(len(dist), 1)
-        #     self.minmax_scaler.fit(dist)
-        #     self.stand_scaler.fit(euclid)
-        #     result = self.minmax_scaler.transform(dist)
-        #     eu_result = self.stand_scaler.transform(euclid)
-        #
-        # for j, trk in enumerate(target_trk):
-        #     dist_score[j] = result[j]
-        #     euclid_score[j] = 1 - eu_result[j]
-        # return dist_score, euclid_score
 
     def tracking(self, det_boxes, image, frame_cnt):
         target_det = []
@@ -208,9 +189,7 @@ class simple_tracker():
             roi_hsv = cv2.cvtColor(feat, cv2.COLOR_BGR2HSV)
             tensor_src = self.convert_img_tensor(feat)
 
-
-
-            # HS 히스토그램 계산
+            # HSV 히스토그램 계산
             channels = [0, 1]
             ranges = [0, 180, 0, 256]
             det_hist = cv2.calcHist([roi_hsv], channels, None, [90, 128], ranges)
