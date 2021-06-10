@@ -15,8 +15,7 @@ class Simsiam():
         model.load_state_dict(torch.load('ckpt/simsiam2.pt'))
         model.eval()
 
-
-    def get_association_matrix(net, trackers, detections, k, t=0.1):
+    def get_association_matrix(self, net, trackers, detections, k, t=0.1):
         with torch.no_grad():
             z_trackers = net(trackers)
             z_trackers = F.normalize(z_trackers, dim=1)
@@ -36,6 +35,3 @@ class Simsiam():
                 'indicies': top_indicies
             }
 
-
-if __name__ == '__main__':
-    main()
