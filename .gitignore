@@ -3,9 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-examples/
-ckpt/
-result/
+examples/media/
+examples/result/
+simsiam/ckpt/
+
 # C extensions
 *.so
 

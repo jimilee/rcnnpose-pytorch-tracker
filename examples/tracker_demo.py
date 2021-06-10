@@ -1,11 +1,17 @@
 import numpy as np
 import cv2
+import torch
+import torchvision
 import random, math, time, sys
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from scipy.optimize import linear_sum_assignment
+from torchvision import transforms
+from PIL import Image
+from simsiam.simsiam_standalone import simsiam_model
 
 class simple_tracker():
     def __init__(self):
+        self.simsiam = simsiam_model()
         self.trackers = {}
         self.init_id_tracker()
         self.last_id, self.max_tracker=0,5
@@ -60,7 +66,7 @@ class simple_tracker():
         for j, trk in enumerate(target_trk):
             # print(target)
             dist.append(self.dist_sim(target['box'], trk['box']))
-            euclid.append(self.euclid_sim(target['feat'], trk['feat']))
+            euclid.append(self.euclid_sim(target['hist'], trk['hist']))
 
         if (len(dist) > 0):
             dist = np.array(dist).reshape(len(dist), 1)
@@ -146,8 +152,44 @@ class simple_tracker():
                     print('트래커 삭제', self.trackers[idx]['id'], cur_frame - tracker['frame'])
                     self.trackers[idx]['stat'] = False
 
+    def convert_img_tensor(self, src):
+        color_cvt = cv2.cvtColor(src, cv2.COLOR_BGR2RGB)
+        pil_src = Image.fromarray(color_cvt)
+        trans = transforms.Compose([transforms.Resize((224,112)),
+                                  transforms.ToTensor()])
+        trans_target = trans(pil_src)
+        # print(trans_target.shape)
+        return trans_target
+
+    def simsiam_sim_score(self, target):
+        target_trk = [state['feat'].unsqueeze(0) for id, state in self.trackers.items() if state['stat'] is True]
+        len_trk = len(target_trk)
+        # dist_score = np.ones(shape=(len_trk,), dtype=np.float32)
+        # euclid_score = np.ones(shape=(len_trk,), dtype=np.float32)
+        if(len_trk > 0):
+            trackers = torch.cat(target_trk, dim=0)
+            ass_mat = self.simsiam.get_association_matrix(self.simsiam.get_backbone(), trackers, target.unsqueeze(0), k=min(len_trk, 5))
+            print(ass_mat)
+        # for j, trk in enumerate(target_trk):
+        #     # print(target)
+        #
+        #     sim.append(self.dist_sim(target['box'], trk['box']))
+        #     euclid.append(self.euclid_sim(target['feat'], trk['feat']))
+        #
+        # if (len(dist) > 0):
+        #     dist = np.array(dist).reshape(len(dist), 1)
+        #     euclid = np.array(euclid).reshape(len(dist), 1)
+        #     self.minmax_scaler.fit(dist)
+        #     self.stand_scaler.fit(euclid)
+        #     result = self.minmax_scaler.transform(dist)
+        #     eu_result = self.stand_scaler.transform(euclid)
+        #
+        # for j, trk in enumerate(target_trk):
+        #     dist_score[j] = result[j]
+        #     euclid_score[j] = 1 - eu_result[j]
+        # return dist_score, euclid_score
+
     def tracking(self, det_boxes, image, frame_cnt):
-        final_targets = []
         target_det = []
         src = image.copy()
         matrix_size = len(det_boxes) if len(self.trackers) < len(det_boxes) else len(self.trackers)
@@ -161,6 +203,10 @@ class simple_tracker():
             # feat = src.crop((max(x1, 0), max(y1, 0), min(x2, src.size[0]), min(y2, src.size[1])))
             feat = src[y1:y2, x1:x2]
             roi_hsv = cv2.cvtColor(feat, cv2.COLOR_BGR2HSV)
+            tensor_src = self.convert_img_tensor(feat)
+
+            sim_score = self.simsiam_sim_score(tensor_src)
+
             # HS 히스토그램 계산
             channels = [0, 1]
             ranges = [0, 180, 0, 256]
@@ -171,7 +217,7 @@ class simple_tracker():
                         'frame': frame_cnt,
                         'box': det,
                         'hist': det_hist,
-                        'feat': det_hist}
+                        'feat': tensor_src}
 
             if frame_cnt == 0:
                 det_data['id'] = self.tracker_provider(det_data)  # 트래커 생성
