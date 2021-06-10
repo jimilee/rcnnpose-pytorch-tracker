@@ -54,7 +54,7 @@ while videoclip.isOpened():
         pass
     # cv2.imwrite('result/'+'{0:04}'.format(frame_cnt) + '.jpg',frame_dst)
     out.write(overlay_tk)
-    cv2.imshow('Video Demo', overlay_tk)
+    cv2.imshow('Video Demo', frame_dst)
     frame_cnt+=1
     if cv2.waitKey(20) & 0xff == 27: # exit if pressed `ESC`
         break

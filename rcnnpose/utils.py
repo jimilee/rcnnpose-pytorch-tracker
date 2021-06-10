@@ -39,6 +39,16 @@ def _draw_box(image, point1, point2, color, thickness=1):
     cv2.rectangle(image, (int(x1), int(y1)), (int(x2), int(y2)), color, thickness, cv2.LINE_AA)
     return image
 
+def _draw_text(image, point1, point2, id, color, thickness=1):
+    x1, y1 = point1
+    x2, y2 = point2
+    if x2 - x1 > 80:
+        image = cv2.putText(image, '{0}'.format(id), (x1 + 2, y1 - 10), fontFace=thickness,
+                          fontScale=1.2, color=color, thickness=2)
+    else:
+        image = cv2.putText(image, '{0}'.format(id), (x1, y1 - 5),
+                          fontFace=2, fontScale=1, color=color, thickness=thickness)
+    return image
 
 def draw_masks(image, masks, color=None, alpha=0.5):
     overlay = image.copy()
@@ -91,4 +101,5 @@ def draw_tracker_boxes(image, trackers, thickness=2, alpha=1.0):
     overlay = image.copy()
     for trk in trackers:
         overlay = _draw_box(overlay, trk['box'][:2], trk['box'][2:], trk['rgb'], thickness)
+        overlay = _draw_text(overlay, trk['box'][:2], trk['box'][2:], trk['id'], trk['rgb'], thickness)
     return cv2.addWeighted(overlay, alpha, image, 1.0 - alpha, 0)
