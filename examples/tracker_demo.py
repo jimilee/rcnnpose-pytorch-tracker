@@ -7,11 +7,11 @@ from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from scipy.optimize import linear_sum_assignment
 from torchvision import transforms
 from PIL import Image
-from simsiam.simsiam_standalone import simsiam
+from simsiam.simsiam_standalone import SimsiamSA
 
 class simple_tracker():
     def __init__(self):
-        self.simsiam = simsiam()
+        self.simsiam = SimsiamSA()
         self.trackers = {}
         self.init_id_tracker()
         self.last_id, self.max_tracker=0,5
@@ -164,11 +164,12 @@ class simple_tracker():
     def simsiam_sim_score(self, target):
         target_trk = [state['feat'].unsqueeze(0) for id, state in self.trackers.items() if state['stat'] is True]
         len_trk = len(target_trk)
+
         # dist_score = np.ones(shape=(len_trk,), dtype=np.float32)
         # euclid_score = np.ones(shape=(len_trk,), dtype=np.float32)
         if(len_trk > 0):
-            trackers = torch.cat(target_trk, dim=0)
-            ass_mat = self.simsiam.get_association_matrix(self.simsiam.get_backbone(), trackers, target.unsqueeze(0), k=min(len_trk, 5))
+            trackers = torch.cat(target_trk, dim=0).cuda(non_blocking=True)
+            ass_mat = self.simsiam.get_association_matrix(self.simsiam.backbone(), trackers, target.unsqueeze(0).cuda(non_blocking=True), k=min(len_trk, 5))
             print(ass_mat)
         # for j, trk in enumerate(target_trk):
         #     # print(target)
