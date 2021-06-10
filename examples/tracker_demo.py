@@ -7,11 +7,11 @@ from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from scipy.optimize import linear_sum_assignment
 from torchvision import transforms
 from PIL import Image
-from simsiam.simsiam_standalone import simsiam_model
+from simsiam.simsiam_standalone import simsiam
 
 class simple_tracker():
     def __init__(self):
-        self.simsiam = simsiam_model()
+        self.simsiam = simsiam()
         self.trackers = {}
         self.init_id_tracker()
         self.last_id, self.max_tracker=0,5
