@@ -101,7 +101,8 @@ class simple_tracker():
             else:
                 tracker_feat = self.trackers[t_id]['feat']
                 tracker_hist = self.trackers[t_id]['hist']
-
+            # print('트래커 업데이트 id :{0}, frame : {1}, cur_frame: {2}'.format(self.trackers[t_id]['id'],
+            #                                                            self.trackers[t_id]['frame'], target_['frame']))
             self.trackers[t_id] = {'id': t_id, 'frame': target_['frame'], 'stat': True,
                                    'box': target_['box'],
                                    'hist': tracker_hist,
@@ -129,17 +130,22 @@ class simple_tracker():
         target_sx, target_bx, target_sy, target_by = target['box']
 
         for idx, tracker in self.trackers.items():
-            # if self.trackers[idx]['stat'] is True:  # and self.id_table[idx]['frame'] == cur_frame
-            Bx1, By1, Bx2, By2 = self.trackers[idx]['box']
-            point_ovl_sxy = [max(target_sx, Bx1), max(target_sy, By1)]
-            point_ovl_bxy = [min(target_bx, Bx2), min(target_by, By2)]
+            if self.trackers[idx]['stat'] is True:  # and self.id_table[idx]['frame'] == cur_frame
+                Bx1, By1, Bx2, By2 = self.trackers[idx]['box']
+                point_ovl_sxy = [max(target_sx, Bx1), max(target_sy, By1)]
+                point_ovl_bxy = [min(target_bx, Bx2), min(target_by, By2)]
 
-            target_area = (target_bx - target_sx) * (target_by - target_sy)
-            ovl_area = max(point_ovl_bxy[0] - point_ovl_sxy[0], 0) * max(point_ovl_bxy[1] - point_ovl_sxy[1], 0)
-            ovl_score = ovl_area / target_area
+                target_area = (target_bx - target_sx) * (target_by - target_sy)
+                if target_area == 0: continue
 
-            if ovl_score > ovl_th and target_by - target_sy < (By2 - By1):
-                return True
+                ovl_area = max(point_ovl_bxy[0] - point_ovl_sxy[0], 0) * max(point_ovl_bxy[1] - point_ovl_sxy[1], 0)
+                try:
+                    ovl_score = ovl_area / target_area
+                except:
+                    print(target_area)
+
+                if ovl_score > ovl_th and target_by - target_sy < (By2 - By1):
+                    return True
     #트래커 제거자.
     def tracker_eliminator(self, cur_frame):
         age_TH = 3
@@ -149,7 +155,11 @@ class simple_tracker():
                 #     age_TH = 5
                 if int(cur_frame - self.trackers[idx]['frame']) > age_TH:
                     # del self.id_table[idx]
-                    print('트래커 제거', self.trackers[idx]['id'])
+                    #
+                    # print('트래커 제거 id :{0}, frame : {1}, cur_frame: {2}'.format(
+                    #                                                               self.trackers[idx]['id'],
+                    #                                                               self.trackers[idx]['frame'],
+                    #                                                               cur_frame))
                     self.trackers[idx]['stat'] = False
 
     def convert_img_tensor(self, src):
@@ -165,23 +175,30 @@ class simple_tracker():
         sim_score = []
         target_trk = [state['feat'].unsqueeze(0) for id, state in self.trackers.items() if state['stat'] is True]
         len_trk = len(target_trk)
-
         if(len_trk > 0):
             trackers = torch.cat(target_trk, dim=0).cuda(non_blocking=True)
-            ass_mat = self.simsiam.get_association_matrix(self.simsiam.backbone(), trackers, target.unsqueeze(0).cuda(non_blocking=True), k=min(len_trk, 5))
+            ass_mat = self.simsiam.get_association_matrix(self.simsiam.backbone(), trackers, target.unsqueeze(0).cuda(non_blocking=True), k=len_trk)
             #score 노말라이즈.
-            x = ass_mat['scores'].unsqueeze(0)
+            # print(type(ass_mat['indicies']), type(ass_mat['scores']))
+            # print(ass_mat['indicies'].squeeze().shape, ass_mat['scores'].squeeze().shape)
+            # print(torch.stack([ass_mat['indicies'].squeeze().float(),ass_mat['scores'].squeeze().float()], dim=1))
+            x = torch.stack([ass_mat['indicies'].squeeze().float(),ass_mat['scores'].squeeze().float()], dim=1).tolist()
+            s = sorted(x, key=lambda x: x[0])
+
+            x = np.array(s)[:, 1]
             x -= x.min()  # bring the lower range to 0
             x /= x.max()  # bring the upper range to 1
             # sim_score = f.normalize(ass_mat['scores'], dim=1).squeeze().tolist()
-            sim_score = np.array(x.squeeze().cpu().tolist(),dtype=np.float32)
+            sim_score = np.array(x,dtype=np.float32)
+            sim_score = [0 if i < 0.7 else i for i in sim_score] # 일정 임계값 이하는 컷
+
         return sim_score
 
     def tracking(self, det_boxes, image, frame_cnt):
         target_det = []
         src = image.copy()
         matrix_size = len(det_boxes) if len(self.trackers) < len(det_boxes) else len(self.trackers)
-        score_matrix = np.full((matrix_size + 1, matrix_size + 1), 1.0, dtype=float)
+        score_matrix = np.full((matrix_size + 1, matrix_size + 1), 10.0, dtype=float)
         for i, det in enumerate(det_boxes):
             x1, y1 = det[:2]
             x2, y2 = det[2:]
@@ -212,12 +229,13 @@ class simple_tracker():
 
             dist_score, euclid_score = self.bbox_sim_score(det_data)
             sim_score = self.simsiam_sim_score(tensor_src)
-
+            # print(len(dist_score), len(sim_score), len(self.online_trk))
             for j, trk in enumerate(self.online_trk):
-                try:
-                    score_matrix[j][i] = 1 - ((dist_score[j] * 0.3) + (sim_score[j] * 0.7))
-                except:
-                    pass
+                # try:
+                score_matrix[j][i] = 1 - ((dist_score[j] * 0.5) + (sim_score[j] * 0.5))
+                # except:
+                #     print(j,i ,'is passed.')
+                #     pass
             target_det.append(det_data)
 
         # print('=====================================================================================')
@@ -226,21 +244,22 @@ class simple_tracker():
             self.online_trk = [state for id, state in self.trackers.items() if state['stat'] is True]
             return self.online_trk
 
-        score_matrix[np.isnan(score_matrix)] = 1.0
+        score_matrix[np.isnan(score_matrix)] = 10.0
 
         # print(score_matrix)
         row_ind, col_ind = linear_sum_assignment(score_matrix)  # hungarian.
         hungarian_result = col_ind[:self.max_tracker]
+
         # id -> idx 로 저장해야됨.
         for id, idx in enumerate(hungarian_result):  # id_update.
-            # print('업데이트 타겟. idx : {0}, id: {1}'.format(idx, self.trackers[id]['id']))
+            # print('업데이트 타겟. id : {0} -> idx: {1}'.format(self.trackers[id]['id'], idx))
             if idx < len(target_det):
-                if score_matrix[idx][id] < 0.5:  # and score_matrix[idx][id] < 0.5  self.trackers[id]['frame'] >= frame_cnt-1
+                if score_matrix[idx][id] < 0.6:  # and score_matrix[idx][id] < 0.5  self.trackers[id]['frame'] >= frame_cnt-1
                     self.tracker_provider(target_=target_det[idx],
                                           t_id=self.trackers[id]['id'], update=True) # 트래커 업데이트
                     target_det[idx]['id'] = self.trackers[id]['id']
 
-                if target_det[idx]['id'] == -1 and not self.occluded_tracker(target=target_det[idx]):# 타겟 아이디가 -1 일때.
+                if target_det[idx]['id'] == -1 and not self.occluded_tracker(target=target_det[idx]):# 타겟 아이디가 -1 일때.(아직 할당 x, 새로 생긴 객체)
                     target_det[idx]['id'] = self.tracker_provider(target_det[idx])  # 트래커 생성
 
         self.tracker_eliminator(frame_cnt)
