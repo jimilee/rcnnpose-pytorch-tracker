@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import torch
 import torchvision
+import torch.nn.functional as f
 import random, math, time, sys
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from scipy.optimize import linear_sum_assignment
@@ -14,12 +15,12 @@ class simple_tracker():
         self.simsiam = SimsiamSA()
         self.trackers = {}
         self.init_id_tracker()
-        self.last_id, self.max_tracker=0,5
+        self.last_id, self.max_tracker=0,10
         self.minmax_scaler = MinMaxScaler()
         self.stand_scaler = StandardScaler()
 
     def init_id_tracker(self):
-        for i in range(0, 5):
+        for i in range(0, 10):
             color = []
             for c in range(3): color.append(random.randrange(0, 256))
             self.trackers[i] = {'id': i, 'stat': False, 'feat': 0, 'frame': 0, 'hist': 0, 'rgb': color}
@@ -87,7 +88,6 @@ class simple_tracker():
     # num_trk : id 할당 우선순위용.
     # t_id, update : 트래커 업데이트 시, 사용.
     def tracker_provider(self, target_, t_id=None, update=False):
-        print(self.last_id, self.max_tracker)
         if self.last_id >= self.max_tracker - 1:
             self.last_id = 0
 
@@ -149,7 +149,6 @@ class simple_tracker():
                 #     age_TH = 15
                 if int(cur_frame - tracker['frame']) > age_TH:
                     # del self.id_table[idx]
-                    print('트래커 삭제', self.trackers[idx]['id'], cur_frame - tracker['frame'])
                     self.trackers[idx]['stat'] = False
 
     def convert_img_tensor(self, src):
@@ -164,13 +163,16 @@ class simple_tracker():
     def simsiam_sim_score(self, target):
         target_trk = [state['feat'].unsqueeze(0) for id, state in self.trackers.items() if state['stat'] is True]
         len_trk = len(target_trk)
-
+        sim_score = []
         # dist_score = np.ones(shape=(len_trk,), dtype=np.float32)
         # euclid_score = np.ones(shape=(len_trk,), dtype=np.float32)
         if(len_trk > 0):
             trackers = torch.cat(target_trk, dim=0).cuda(non_blocking=True)
             ass_mat = self.simsiam.get_association_matrix(self.simsiam.backbone(), trackers, target.unsqueeze(0).cuda(non_blocking=True), k=min(len_trk, 5))
-            print(ass_mat)
+            #score 노말라이즈.
+            sim_score = f.normalize(ass_mat['scores'], dim=1).squeeze().tolist()
+            print(sim_score)
+        return sim_score
         # for j, trk in enumerate(target_trk):
         #     # print(target)
         #
@@ -206,7 +208,7 @@ class simple_tracker():
             roi_hsv = cv2.cvtColor(feat, cv2.COLOR_BGR2HSV)
             tensor_src = self.convert_img_tensor(feat)
 
-            sim_score = self.simsiam_sim_score(tensor_src)
+
 
             # HS 히스토그램 계산
             channels = [0, 1]
@@ -226,12 +228,12 @@ class simple_tracker():
 
 
             dist_score, euclid_score = self.bbox_sim_score(det_data)
-
+            sim_score = self.simsiam_sim_score(tensor_src)
 
             for j, trk in self.trackers.items():
                 if self.trackers[j]['stat']:
                     try:
-                        score_matrix[j][i] = 1 -((dist_score[j] * 0.5) + ( euclid_score[j]* 0.5))  #(self.euclid_sim(det_data['feat'], self.trackers[j]['feat']))*0.0 +
+                        score_matrix[j][i] = 1 -((dist_score[j] * 0.3) + (sim_score[j]* 0.7))  #(self.euclid_sim(det_data['feat'], self.trackers[j]['feat']))*0.0 +
                     except:
                         pass
                         # print(j)
