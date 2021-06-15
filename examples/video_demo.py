@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 from rcnnpose.estimator import BodyPoseEstimator
 from rcnnpose.utils import draw_body_connections, draw_keypoints, draw_masks, _draw_box, draw_boxes, draw_tracker_boxes
-from src.tracker_demo import simple_tracker
+from examples.tracker_demo import simple_tracker
 
 estimator = BodyPoseEstimator(pretrained=True)
 videoclip = cv2.VideoCapture('media/mot16-11.wmv')
@@ -40,7 +40,7 @@ while videoclip.isOpened():
 
     starttime_trk = time.time()
     target = st.tracking(boxes, frame, frame_cnt)
-
+    endtime_trk = time.time()
     overlay_tk = draw_tracker_boxes(frame, target)
 
     # frame_dst = np.hstack((frame, overlay_m, overlay_k))
@@ -48,8 +48,8 @@ while videoclip.isOpened():
     total_proctime = total_proctime+(time.time() - starttime)
 
     try:
-        cv2.putText(frame_dst, str((time.time() - starttime)), (500, 400), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 0), 2)
-        cv2.putText(frame_dst, str((time.time() - starttime_trk)), (500, 380), cv2.FONT_HERSHEY_PLAIN, 1, (100, 0, 0), 2)
+        cv2.putText(frame_dst, str(1/(endtime_trk - starttime)), (500, 400), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 0), 2)
+        cv2.putText(frame_dst, str(1/(time.time() - starttime_trk)), (500, 380), cv2.FONT_HERSHEY_PLAIN, 1, (100, 0, 0), 2)
     except:
         pass
     # cv2.imwrite('result/'+'{0:04}'.format(frame_cnt) + '.jpg',frame_dst)
