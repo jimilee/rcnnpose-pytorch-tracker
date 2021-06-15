@@ -28,7 +28,20 @@ class simple_tracker():
             for c in range(3): color.append(random.randrange(0, 256))
             self.trackers[i] = {'id': i, 'stat': False, 'feat': 0, 'frame': 0, 'hist': 0, 'rgb': color}
 
-    def
+    # 챌린지 출력파일 저장.
+    def print_tracking_result(self, data, path, this_frame):
+        f = open(path, 'a')
+        # print('this_frame : ', this_frame)
+        for p_data in data:
+            # if not self.occluded_tracker(this_frame, p_data['id'], 0.5):
+            p_data_width = int(p_data['bx'] - p_data['sx'])
+            p_data_height = int(p_data['by'] - p_data['sy'])
+            # print("{0},{1},{2},{3},{4},{5},-1,-1,-1,-1".format(p_data['frame'], p_data['id'], p_data['sx'], p_data['sy'], p_data_width, p_data_height))
+            if this_frame <= p_data['frame'] + 2:
+                f.write("{0}, {1}, {2}, {3}, {4}, {5}, -1, -1, -1, -1\n".format(this_frame, p_data['id'], p_data['sx'],
+                                                                                p_data['sy'], p_data_width,
+                                                                                p_data_height))
+
     def bbox_sim_score(self, target):
         dist, euclid, hist, ovl, sim = [], [], [], [], []
         target_trk = [state for id, state in self.trackers.items() if state['stat'] is True]
