@@ -9,7 +9,7 @@ from rcnnpose.utils import draw_body_connections, draw_keypoints, draw_masks, _d
 from examples.tracker_demo import simple_tracker
 
 estimator = BodyPoseEstimator(pretrained=True)
-videoclip = cv2.VideoCapture('media/mot16-11.wmv')
+videoclip = cv2.VideoCapture('media/test2.mp4')
 fourcc = cv2.VideoWriter_fourcc(*'DIVX')
 #파일 stream 생성
 out = cv2.VideoWriter('result/test_Result_MOT.avi',fourcc, videoclip.get(cv2.CAP_PROP_FPS), (int(videoclip.get(cv2.CAP_PROP_FRAME_WIDTH)), int(videoclip.get(cv2.CAP_PROP_FRAME_HEIGHT))) )

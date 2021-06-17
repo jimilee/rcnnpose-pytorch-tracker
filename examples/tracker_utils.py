@@ -22,22 +22,53 @@ def euclid_sim(A, B):
 def dist_sim(A, B): # (ovl_score + dist_score) / 2
     Ax1, Ay1, Ax2, Ay2 = A
     Bx1, By1, Bx2, By2 = B
+
+    # box = (x1, y1, x2, y2)
+    box1_area = (Ax2 - Ax1 + 1) * (Ay2 - Ay1 + 1)
+    box2_area = (Bx2 - Bx1 + 1) * (By2 - By1 + 1)
+
+    # obtain x1, y1, x2, y2 of the intersection
+    Ox1 = max(Ax1, Bx1)
+    Oy1 = max(Ay1, By1)
+    Ox2 = min(Ax2, Bx2)
+    Oy2 = min(Ay2, By2)
+
+    # compute the width and height of the intersection
+    w = max(0, Ox2 - Ox1 + 1)
+    h = max(0, Oy2 - Oy1 + 1)
+
+    inter = w * h
+    iou = inter / (box1_area + box2_area - inter)
+    ovl_score = iou
+
+
     Acx = Ax1 + ((Ax2 - Ax1) / 2)
     Acy = Ay1 + ((Ay2 - Ay1) / 2)
     Bcx = Bx1 + ((Bx2 - Bx1) / 2)
     Bcy = By1 + ((By2 - By1) / 2)
-    point_com_sxy = [min(Ax1, Bx1), min(Ay1, By1)]
-    point_com_bxy = [max(Ax2, Bx2), max(Ay2, By2)]
-    point_ovl_sxy = [max(Ax1, Bx1), max(Ay1, By1)]
-    point_ovl_bxy = [min(Ax2, Bx2), min(Ay2, By2)]
 
     a_center_pt = [Acx, Acy]
     b_center_pt = [Bcx, Bcy]
 
-    comb_area = (point_com_bxy[0] - point_com_sxy[0]) * (point_com_bxy[1] - point_com_sxy[1])
-    ovl_area = max(point_ovl_bxy[0] - point_ovl_sxy[0], 0) * max(point_ovl_bxy[1] - point_ovl_sxy[1], 0)
-    ovl_score = ovl_area / comb_area
+
     result = float(((1 - math.sqrt(math.pow(a_center_pt[0] - b_center_pt[0], 2)
-                                   + math.pow(a_center_pt[1] - b_center_pt[1], 2)))
-                    + ovl_score ) /2)
+                                   + math.pow(a_center_pt[1] - b_center_pt[1], 2))) * 0.0)
+                    + (ovl_score * 1.0))
     return result
+
+# 챌린지 출력파일 저장.
+def print_tracking_result(data, path, this_frame):
+    f = open(path, 'a')
+    # print('this_frame : ', this_frame)
+    for p_data in data:
+        x1, y1, x2, y2 = p_data['box']
+        # if not self.occluded_tracker(this_frame, p_data['id'], 0.5):
+        p_data_width = int(x2 - x1)
+        p_data_height = int(y2 - y1)
+        # print("{0},{1},{2},{3},{4},{5},-1,-1,-1,-1".format(p_data['frame'], p_data['id'], p_data['sx'], p_data['sy'], p_data_width, p_data_height))
+        if this_frame <= p_data['frame'] + 2:
+            f.write("{0}, {1}, {2}, {3}, {4}, {5}, -1, -1, -1, -1\n".format(this_frame, p_data['id'], x1,
+                                                                            y1, p_data_width,
+                                                                            p_data_height))
+
+    f.close()
