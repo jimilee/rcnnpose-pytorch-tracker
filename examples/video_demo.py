@@ -9,10 +9,10 @@ from rcnnpose.utils import draw_body_connections, draw_keypoints, draw_masks, _d
 from examples.tracker_demo import simple_tracker
 
 estimator = BodyPoseEstimator(pretrained=True)
-videoclip = cv2.VideoCapture('media/test2.mp4')
+videoclip = cv2.VideoCapture('media/mot16-11.wmv')
 fourcc = cv2.VideoWriter_fourcc(*'DIVX')
 #파일 stream 생성
-out = cv2.VideoWriter('result/test_Result_MOT.avi',fourcc, videoclip.get(cv2.CAP_PROP_FPS), (int(videoclip.get(cv2.CAP_PROP_FRAME_WIDTH)), int(videoclip.get(cv2.CAP_PROP_FRAME_HEIGHT))) )
+# out = cv2.VideoWriter('result/test_Result_MOT.avi',fourcc, videoclip.get(cv2.CAP_PROP_FPS), (int(videoclip.get(cv2.CAP_PROP_FRAME_WIDTH)), int(videoclip.get(cv2.CAP_PROP_FRAME_HEIGHT))) )
 total_proctime = 0.0
 st = simple_tracker()
 
@@ -41,25 +41,25 @@ while videoclip.isOpened():
     starttime_trk = time.time()
     target = st.tracking(boxes, frame, frame_cnt)
     endtime_trk = time.time()
-    overlay_tk = draw_tracker_boxes(frame, target)
+    overlay_tk = draw_tracker_boxes(frame, target, frame_cnt)
 
     # frame_dst = np.hstack((frame, overlay_m, overlay_k))
     frame_dst = np.hstack((frame, overlay_d, overlay_tk))
     total_proctime = total_proctime+(time.time() - starttime)
 
-    try:
-        cv2.putText(frame_dst, str(1/(endtime_trk - starttime)), (500, 400), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 0), 2)
-        cv2.putText(frame_dst, str(1/(time.time() - starttime_trk)), (500, 380), cv2.FONT_HERSHEY_PLAIN, 1, (100, 0, 0), 2)
-    except:
-        pass
-    # cv2.imwrite('result/'+'{0:04}'.format(frame_cnt) + '.jpg',frame_dst)
-    out.write(overlay_tk)
-    cv2.imshow('Video Demo', frame_dst)
+    # try:
+    #     cv2.putText(frame_dst, str(1/(endtime_trk - starttime)), (500, 400), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 0), 2)
+    #     cv2.putText(frame_dst, str(1/(time.time() - starttime_trk)), (500, 380), cv2.FONT_HERSHEY_PLAIN, 1, (100, 0, 0), 2)
+    # except:
+    #     pass
+    cv2.imwrite('result/img/'+'{0:04}'.format(frame_cnt) + '.jpg',frame_dst)
+    # out.write(overlay_tk)
+    cv2.imshow('Video Demo', overlay_tk)
     frame_cnt+=1
     if cv2.waitKey(20) & 0xff == 27: # exit if pressed `ESC`
         break
 
-out.release()
+# out.release()
 print('total time : '+str(total_proctime/300))
 # videoclip.release()
 # cv2.destroyAllWindows()

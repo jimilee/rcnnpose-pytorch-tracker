@@ -38,6 +38,8 @@ def dist_sim(A, B): # (ovl_score + dist_score) / 2
     h = max(0, Oy2 - Oy1 + 1)
 
     inter = w * h
+    if inter == 0:
+        return float(0.0)
     iou = inter / (box1_area + box2_area - inter)
     ovl_score = iou
 
@@ -50,11 +52,11 @@ def dist_sim(A, B): # (ovl_score + dist_score) / 2
     a_center_pt = [Acx, Acy]
     b_center_pt = [Bcx, Bcy]
 
+    if (a_center_pt < [Bx2,By2] and a_center_pt > [Bx1,By1]) \
+            or (b_center_pt < [Ax2,Ay2] and b_center_pt > [Ax1,Ay1]):
+        return float((ovl_score * 1.0))
 
-    result = float(((1 - math.sqrt(math.pow(a_center_pt[0] - b_center_pt[0], 2)
-                                   + math.pow(a_center_pt[1] - b_center_pt[1], 2))) * 0.0)
-                    + (ovl_score * 1.0))
-    return result
+    return 0.0
 
 # 챌린지 출력파일 저장.
 def print_tracking_result(data, path, this_frame):
