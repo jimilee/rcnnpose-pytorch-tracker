@@ -119,7 +119,7 @@ class simple_tracker():
         elif self.last_id < self.max_tracker: #self.last_id < self.max_tracker and
             for id, state in self.trackers.items():
                 rgb = self.trackers[id]['rgb']
-                if self.trackers[id]['stat'] is False and id >= self.last_id:#
+                if self.trackers[id]['stat'] is False and id > self.last_id:#
                     self.last_id = id
 
                     self.trackers[id] = {'id': id, 'frame': target_['frame'], 'stat': True,
@@ -263,7 +263,7 @@ class simple_tracker():
             for j, trk in enumerate(self.online_trk):
                 # try:
                 if dist_score[j] > 0.6 :
-                    score_matrix[i][trk['id']] = 1 - ((sim_score[j] * 0.5)+ (dist_score[j] * 0.5))
+                    score_matrix[i][trk['id']] = 1 - ((sim_score[j] * 0.0)+ (dist_score[j] * 1.0))
 
                 # except:
                 #     print(j,i ,'is passed.')

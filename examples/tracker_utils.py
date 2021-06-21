@@ -23,9 +23,8 @@ def dist_sim(A, B): # (ovl_score + dist_score) / 2
     Ax1, Ay1, Ax2, Ay2 = A
     Bx1, By1, Bx2, By2 = B
 
-    # box = (x1, y1, x2, y2)
-    box1_area = (Ax2 - Ax1 + 1) * (Ay2 - Ay1 + 1)
-    box2_area = (Bx2 - Bx1 + 1) * (By2 - By1 + 1)
+    # combine 2 box = (x1, y1, x2, y2)
+    Cx1, Cy1, Cx2, Cy2 = min(Ax1,Bx1), min(Ay1, By1), max(Ax2, Bx2), max(Ay2,By2)
 
     # obtain x1, y1, x2, y2 of the intersection
     Ox1 = max(Ax1, Bx1)
@@ -40,7 +39,7 @@ def dist_sim(A, B): # (ovl_score + dist_score) / 2
     inter = w * h
     if inter == 0:
         return float(0.0)
-    iou = inter / (box1_area + box2_area - inter)
+    iou = inter / ((Cx2-Cx1) * (Cy2 - Cy1))
     ovl_score = iou
 
 
