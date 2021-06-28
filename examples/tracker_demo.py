@@ -19,17 +19,16 @@ class simple_tracker():
         self.simsiam = SimsiamSA()
         self.trackers = {}
         self.online_trk = []
-        self.init_id_tracker()
-        self.last_id, self.max_tracker=0,20
+        self.last_id, self.max_tracker=0,50
+        self.init_id_tracker(self.max_tracker)
         self.minmax_scaler = MinMaxScaler()
         self.stand_scaler = StandardScaler()
 
-    def init_id_tracker(self):
-        for i in range(0, 20):
+    def init_id_tracker(self, max_tracker):
+        for i in range(0, max_tracker):
             color = []
             for c in range(3): color.append(random.randrange(0, 256))
             self.trackers[i] = {'id': i, 'stat': False, 'feat': 0, 'frame': 0, 'hist': 0, 'rgb': color}
-
 
 
     def bbox_sim_score(self, target):
@@ -41,7 +40,7 @@ class simple_tracker():
         euclid_score = np.ones(shape=(len_trk,), dtype=np.float32)
         simsiam_score = np.zeros(shape=(len_trk,), dtype=np.float32)
         target_ = [state['id'] for id, state in self.trackers.items() if state['stat'] is True]
-        print('트래커 아이디 확인.',target_)
+        # print('트래커 아이디 확인.',target_)
         if(len_trk > 0):
             trackers = torch.cat(trk_feats, dim=0).cuda(non_blocking=True)
             ass_mat = self.simsiam.get_association_matrix(self.simsiam.backbone(), trackers, target['feat'].unsqueeze(0).cuda(non_blocking=True), k=min(len_trk, 5))
@@ -83,9 +82,9 @@ class simple_tracker():
             dist_score[j] = dist[j]
             euclid_score[j] = 1 - eu_result[j]
 
-        print('dist_score', dist_score)
-        print('euclid_score', euclid_score)
-        print('sim_result', sim_result)
+        # print('dist_score', dist_score)
+        # print('euclid_score', euclid_score)
+        # print('sim_result', sim_result)
         return dist_score, euclid_score, sim_result
 
 
@@ -179,7 +178,9 @@ class simple_tracker():
         pil_src = Image.fromarray(color_cvt)
         # trans = transforms.Compose([transforms.Resize((224,112)),
         #                           transforms.ToTensor()])
-        trans = transforms.Compose([transforms.Resize((128,64)),
+        # trans = transforms.Compose([transforms.Resize((128,64)),
+        #                           transforms.ToTensor()])
+        trans = transforms.Compose([transforms.Resize((256,128)),
                                   transforms.ToTensor()])
         trans_target = trans(pil_src)
         # print(trans_target.shape)
@@ -216,7 +217,7 @@ class simple_tracker():
         if (len_trk > 0):
             trackers = torch.cat(target_trk, dim=0).cuda(non_blocking=True)
             detectors = torch.cat([feat['feat'].unsqueeze(0) for feat in data_dets], dim=0).cuda(non_blocking=True)
-            print(trackers.shape, detectors.shape)
+            # print(trackers.shape, detectors.shape)
             ass_mat = self.simsiam.get_association_matrix(self.simsiam.backbone(), trackers,
                                                           detectors, k=len_trk)
             print(ass_mat)
@@ -226,9 +227,9 @@ class simple_tracker():
         src = image.copy()
         matrix_size = len(det_boxes) if len(self.trackers) < len(det_boxes) else len(self.trackers)
         score_matrix = np.full((matrix_size + 1, matrix_size + 1), 10.0, dtype=float)
-        print(
-            '\n Start frame : {0} ===================================================================================='.format(
-                frame_cnt))
+        # print(
+        #     '\n Start frame : {0} ===================================================================================='.format(
+        #         frame_cnt))
         for i, det in enumerate(det_boxes):
             x1, y1 = det[:2]
             x2, y2 = det[2:]
@@ -263,7 +264,7 @@ class simple_tracker():
             for j, trk in enumerate(self.online_trk):
                 # try:
                 if dist_score[j] > 0.6 :
-                    score_matrix[i][trk['id']] = 1 - ((sim_score[j] * 0.0)+ (dist_score[j] * 1.0))
+                    score_matrix[i][trk['id']] = 1 - ((sim_score[j] * 0.3)+ (dist_score[j] * 0.7))
 
                 # except:
                 #     print(j,i ,'is passed.')
@@ -282,25 +283,25 @@ class simple_tracker():
         # print(score_matrix)
         row_ind, col_ind = linear_sum_assignment(score_matrix)  # hungarian.
         hungarian_result = col_ind[:len(target_det)]
-        print(row_ind)
-        print(col_ind)
-        print(hungarian_result)
+        # print(row_ind)
+        # print(col_ind)
+        # print(hungarian_result)
         # id -> idx 로 저장해야됨.
         for idx, id in enumerate(hungarian_result):  # id_update.
-            if id < len(target_det):
+            if idx < len(target_det) and id < self.max_tracker:
                 if self.trackers[id]['stat'] == True :  # and score_matrix[idx][id] < 0.5  self.trackers[id]['frame'] >= frame_cnt-1
-                    print('업데이트 타겟. id : {0} -> idx: {1}'.format(self.trackers[id]['id'], idx))
+                    # print('업데이트 타겟. id : {0} -> idx: {1}'.format(self.trackers[id]['id'], idx))
                     self.tracker_provider(target_=target_det[idx],
                                           t_id=self.trackers[id]['id'], update=True) # 트래커 업데이트
                     target_det[idx]['id'] = self.trackers[id]['id']
 
                 if target_det[idx]['id'] == -1 and not self.occluded_tracker(target=target_det[idx]['box'], ovl_th= 0.0):# 타겟 아이디가 -1 일때.(아직 할당 x, 새로 생긴 객체)
                     target_det[idx]['id'] = self.tracker_provider(target_det[idx])  # 트래커 생성
-                    print('트래커 생성. id:', target_det[idx]['id'] ,target_det[idx]['id'] == -1,
-                          self.occluded_tracker(target=target_det[idx]['box'], ovl_th=0.3))
+                    # print('트래커 생성. id:', target_det[idx]['id'] ,target_det[idx]['id'] == -1,
+                    #       self.occluded_tracker(target=target_det[idx]['box'], ovl_th=0.3))
 
         self.tracker_eliminator(frame_cnt)
-        self.online_trk = [state for id, state in self.trackers.items() if state['stat'] is True]
+        self.online_trk = [state for id, state in self.trackers.items() if state['stat'] is True and (frame_cnt - state['frame']) < 2]
         # 결과값 저장.
         # print_tracking_result(self.online_trk, challenge_path, frame_cnt)
         return self.online_trk

@@ -7,7 +7,7 @@ import pathlib
 ########################################################################################
 TARGET_DATASET = {'MOT16'}
 
-CHALLENGE_PATH = 'C:/Users/USER/Desktop/motchallenge-devkit/res/MOT16/data/'
+CHALLENGE_PATH = 'C:/Users/CVPR_JIMILEE/Desktop/motchallenge-devkit/res/MOT16/data/'
 
 PROJECT_PATH = pathlib.Path(__file__).parent.parent.parent.absolute()
 
