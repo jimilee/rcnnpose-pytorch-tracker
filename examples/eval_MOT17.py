@@ -28,10 +28,10 @@ def track_all_seq(target_='train'):
                 os.makedirs(osp.join(roll.CHALLENGE_PATH, seq[9:]))
 
             if os.path.isfile(challenge_path):
-                # print(challenge_path, 'is exist! make new.')  # 이미 챌린지 출력결과가 있을경우, 해당 파일 삭제.
-                # os.remove(challenge_path)
-                print(challenge_path, 'is exist! pass this seq.')   # 패스.
-                continue
+                print(challenge_path, 'is exist! make new.')  # 이미 챌린지 출력결과가 있을경우, 해당 파일 삭제.
+                os.remove(challenge_path)
+                # print(challenge_path, 'is exist! pass this seq.')   # 패스.
+                # continue
 
             bbox = []
             with open(file_target, 'r', encoding='utf-8') as f:
@@ -70,9 +70,7 @@ def track_all_seq(target_='train'):
                 # cv2.imshow('Video Demo', overlay_tk)
                 # if cv2.waitKey(20) & 0xff == 27:  # exit if pressed `ESC`
                 #     break
-                print_tracking_result(target, challenge_path, frame_cnt+1)
-
-
+                print_tracking_result(target, challenge_path, frame_cnt)
 
 track_all_seq()
     # print(times)

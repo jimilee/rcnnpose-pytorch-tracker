@@ -5,7 +5,7 @@ import torchvision
 import torch.nn.functional as f
 import random, math, time, sys
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
-from tracker_utils import cal_histogram, cos_sim, euclid_sim, dist_sim, print_tracking_result
+from tracker_utils import cal_histogram, cos_sim, euclid_sim, dist_sim, print_tracking_result, centroid_box
 from scipy.optimize import linear_sum_assignment
 from torchvision import transforms
 from PIL import Image
@@ -28,37 +28,45 @@ class simple_tracker():
         for i in range(0, max_tracker):
             color = []
             for c in range(3): color.append(random.randrange(0, 256))
-            self.trackers[i] = {'id': i, 'stat': False, 'feat': 0, 'frame': 0, 'hist': 0, 'rgb': color}
+            self.trackers[i] = {'id': i,
+                                'stat': False,
+                                'feat': 0,
+                                'frame': 0,
+                                'hist': 0,
+                                'rgb': color,
+                                'occ': False}
 
 
     def bbox_sim_score(self, target):
-        dist, euclid, hist, ovl, sim = [], [], [], [], []
+        dist, euclid, sim = [], [], []
         target_trk = self.online_trk
-        trk_feats = [state['feat'].unsqueeze(0) for state in target_trk]
+        # trk_feats = [state['feat'].unsqueeze(0) for state in target_trk]
         len_trk = len(target_trk)
         dist_score = np.ones(shape=(len_trk,), dtype=np.float32)
         euclid_score = np.ones(shape=(len_trk,), dtype=np.float32)
         simsiam_score = np.zeros(shape=(len_trk,), dtype=np.float32)
-        target_ = [state['id'] for id, state in self.trackers.items() if state['stat'] is True]
-        # print('트래커 아이디 확인.',target_)
-        if(len_trk > 0):
-            trackers = torch.cat(trk_feats, dim=0).cuda(non_blocking=True)
-            ass_mat = self.simsiam.get_association_matrix(self.simsiam.backbone(), trackers, target['feat'].unsqueeze(0).cuda(non_blocking=True), k=min(len_trk, 5))
-            #score 노말라이즈.
-            if(len_trk==1):
-                x = torch.stack([ass_mat['indicies'].squeeze().float(),ass_mat['scores'].squeeze().float()], dim=0).tolist()
-                simsiam_score[int(x[0])] = 0.5
-            else:
-                x = torch.stack([ass_mat['indicies'].squeeze().float(), ass_mat['scores'].squeeze().float()],
-                                dim=1).tolist()
 
-                y = np.array(x)[:, 1]
-                y -= y.min()  # bring the lower range to 0
-                y /= y.max()  # bring the upper range to 1
-                x = torch.stack([ass_mat['indicies'].squeeze().float(), torch.Tensor(y).cuda()],
-                                dim=1).tolist()
-                for i, score in x:
-                    simsiam_score[int(i)] = score
+        # print('트래커 아이디 확인.',target_)
+        # if(len_trk > 0):
+        #     trackers = torch.cat(trk_feats, dim=0).cuda(non_blocking=True)
+        #     ass_mat = self.simsiam.get_association_matrix(self.simsiam.backbone(), trackers, target['feat'].unsqueeze(0).cuda(non_blocking=True), k=min(len_trk, 5))
+        #     #score 노말라이즈.
+        #     if(len_trk==1):
+        #         x = torch.stack([ass_mat['indicies'].squeeze().float(),ass_mat['scores'].squeeze().float()], dim=0).tolist()
+        #         simsiam_score[int(x[0])] = 0.5
+        #     else:
+        #         x = torch.stack([ass_mat['indicies'].squeeze().float(), ass_mat['scores'].squeeze().float()],
+        #                         dim=1).tolist()
+        #
+        #         y = np.array(x)[:, 1]
+        #         y -= y.min()  # bring the lower range to 0
+        #         y /= y.max()  # bring the upper range to 1
+        #         x = torch.stack([ass_mat['indicies'].squeeze().float(), torch.Tensor(y).cuda()],
+        #                         dim=1).tolist()
+        #         for i, score in x:
+        #             simsiam_score[int(i)] = score
+        #
+        sim_result = np.array(simsiam_score).reshape(len_trk, )
 
         for j, trk in enumerate(target_trk):
             # print(target)
@@ -77,7 +85,6 @@ class simple_tracker():
             self.minmax_scaler.fit(euclid)
             eu_result = self.minmax_scaler.transform(euclid)
 
-        sim_result = np.array(simsiam_score).reshape(len_trk, )
         for j, trk in enumerate(target_trk):
             dist_score[j] = dist[j]
             euclid_score[j] = 1 - eu_result[j]
@@ -98,20 +105,26 @@ class simple_tracker():
 
         if update and t_id is not None:
             rgb = self.trackers[t_id]['rgb']
-            # if not self.occluded_tracker(target_['box'], ovl_th=0.5):
-            #     tracker_feat = target_['feat']
-            #     tracker_hist = target_['hist']
-            #
-            # else:
-            tracker_feat = self.trackers[t_id]['feat']
-            tracker_hist = self.trackers[t_id]['hist']
-            # print('트래커 업데이트 id :{0}, frame : {1}, cur_frame: {2}'.format(self.trackers[t_id]['id'],
+            if self.occluded_tracker(target_['box'], ovl_th=0.5):
+                tracker_feat = target_['feat']
+                tracker_hist = target_['hist']
+                tracker_bbox = centroid_box(target_['box'], self.trackers[t_id]['box'])
+                trk_occ = True
+
+
+            else:
+                tracker_feat = self.trackers[t_id]['feat']
+                tracker_hist = self.trackers[t_id]['hist']
+                tracker_bbox = centroid_box(target_['box'], self.trackers[t_id]['box'])
+                trk_occ = False
+                # print('트래커 업데이트 id :{0}, frame : {1}, cur_frame: {2}'.format(self.trackers[t_id]['id'],
             #                                                            self.trackers[t_id]['frame'], target_['frame']))
             self.trackers[t_id] = {'id': t_id, 'frame': target_['frame'], 'stat': True,
-                                   'box': target_['box'],
+                                   'box': tracker_bbox,
                                    'hist': tracker_hist,
                                    'feat': tracker_feat,
-                                   'rgb': rgb}
+                                   'rgb': rgb,
+                                   'occ' : trk_occ}
 
         # if d_id != -1:
         #     self.id_table[d_id]['stat'] = False
@@ -121,30 +134,31 @@ class simple_tracker():
                 if self.trackers[id]['stat'] is False and id > self.last_id:#
                     self.last_id = id
 
-                    self.trackers[id] = {'id': id, 'frame': target_['frame'], 'stat': True,
+                    self.trackers[id] = {'id': id, 'frame': target_['frame'], 'stat': True, # id 할당되면 true.
                                          'box': target_['box'],
                                          'hist': target_['hist'],
                                          'feat': target_['feat'],
-                                         'rgb': rgb}  # id 할당되면 true.
+                                         'rgb': rgb,
+                                         'occ': False}
 
                     # print(id, '트래커 할당.', self.trackers[id])
                     return int(id)
 
     def occluded_tracker(self, target, ovl_th=0.5):
-        target_sx, target_sy, target_bx, target_by = target
-        for idx, tracker in self.trackers.items():
-            if self.trackers[idx]['stat'] is True:  # and self.id_table[idx]['frame'] == cur_frame
-                Bx1, By1, Bx2, By2 = self.trackers[idx]['box']
+        Ax1, Ay1, Ax2, Ay2 = target
+        for tracker in self.online_trk:
+            if tracker['stat'] is True:  # and self.id_table[idx]['frame'] == cur_frame
+                Bx1, By1, Bx2, By2 = tracker['box']
 
                 # box = (x1, y1, x2, y2)
-                box1_area = (target_bx - target_sx + 1) * (target_by - target_sy + 1)
+                box1_area = (Ax2 - Ax1 + 1) * (Ay2 - Ay1 + 1)
                 box2_area = (Bx2 - Bx1 + 1) * (By2 - By1 + 1)
 
                 # obtain x1, y1, x2, y2 of the intersection
-                Ox1 = max(target_sx, Bx1)
-                Oy1 = max(target_sy, By1)
-                Ox2 = min(target_bx, Bx2)
-                Oy2 = min(target_by, By2)
+                Ox1 = max(Ax1, Bx1)
+                Oy1 = max(Ay1, By1)
+                Ox2 = min(Ax2, Bx2)
+                Oy2 = min(Ay2, By2)
 
                 # compute the width and height of the intersection
                 w = max(0, Ox2 - Ox1 + 1)
@@ -152,15 +166,17 @@ class simple_tracker():
 
                 inter = w * h
                 iou = inter / (box1_area + box2_area - inter)
+                if iou > 0.8: continue
                 ovl_score = iou
+                print(ovl_score)
 
-                if ovl_score > ovl_th and target_by - target_sy < (By2 - By1): #
+                if ovl_score > ovl_th and (Ay2 - Ay1) < (By2 - By1): #
                     return True #많이 겹치면 True
 
         return False
     #트래커 제거자.
     def tracker_eliminator(self, cur_frame):
-        age_TH = 5
+        age_TH = 10
         for idx, tracker in self.trackers.items():
             if self.trackers[idx]['stat'] is True:
                 # if self.occluded_tracker(self.trackers[idx]):
@@ -234,7 +250,7 @@ class simple_tracker():
             x1, y1 = det[:2]
             x2, y2 = det[2:]
 
-            if (x2-x1) < 8 or (y2-y1) < 8:
+            if (x2-x1) < 30 or (y2-y1) < 30:
                 continue
             # feat = src.crop((max(x1, 0), max(y1, 0), min(x2, src.size[0]), min(y2, src.size[1])))
             feat = src[y1:y2, x1:x2]
@@ -263,8 +279,8 @@ class simple_tracker():
             # print(len(dist_score), len(sim_score), len(self.online_trk))
             for j, trk in enumerate(self.online_trk):
                 # try:
-                if dist_score[j] > 0.6 :
-                    score_matrix[i][trk['id']] = 1 - ((sim_score[j] * 0.3)+ (dist_score[j] * 0.7))
+                # if dist_score[j] > 0.6 :
+                score_matrix[i][trk['id']] = 1 - ((euclid_score[j] * 0.3)+ (dist_score[j] * 0.7))
 
                 # except:
                 #     print(j,i ,'is passed.')
@@ -289,7 +305,7 @@ class simple_tracker():
         # id -> idx 로 저장해야됨.
         for idx, id in enumerate(hungarian_result):  # id_update.
             if idx < len(target_det) and id < self.max_tracker:
-                if self.trackers[id]['stat'] == True :  # and score_matrix[idx][id] < 0.5  self.trackers[id]['frame'] >= frame_cnt-1
+                if self.trackers[id]['stat'] == True and score_matrix[idx][id] < 0.5:  # and score_matrix[idx][id] < 0.5  self.trackers[id]['frame'] >= frame_cnt-1
                     # print('업데이트 타겟. id : {0} -> idx: {1}'.format(self.trackers[id]['id'], idx))
                     self.tracker_provider(target_=target_det[idx],
                                           t_id=self.trackers[id]['id'], update=True) # 트래커 업데이트
@@ -301,7 +317,7 @@ class simple_tracker():
                     #       self.occluded_tracker(target=target_det[idx]['box'], ovl_th=0.3))
 
         self.tracker_eliminator(frame_cnt)
-        self.online_trk = [state for id, state in self.trackers.items() if state['stat'] is True and (frame_cnt - state['frame']) < 2]
+        self.online_trk = [state for id, state in self.trackers.items() if state['stat'] is True] # and (frame_cnt - state['frame']) < 2
         # 결과값 저장.
         # print_tracking_result(self.online_trk, challenge_path, frame_cnt)
         return self.online_trk

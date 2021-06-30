@@ -100,7 +100,9 @@ def draw_boxes(image, boxes, thickness=1, alpha=1.0):
 def draw_tracker_boxes(image, trackers, frame, thickness=2, alpha=1.0):
     overlay = image.copy()
     for trk in trackers:
-        # if trk['frame'] >= frame-3:
-        overlay = _draw_box(overlay, trk['box'][:2], trk['box'][2:], trk['rgb'], thickness)
+        if trk['occ']:
+            overlay = _draw_box(overlay, trk['box'][:2], trk['box'][2:], (0, 0, 0), thickness)
+        else:
+            overlay = _draw_box(overlay, trk['box'][:2], trk['box'][2:], trk['rgb'], thickness)
         overlay = _draw_text(overlay, trk['box'][:2], trk['box'][2:], trk['id'], trk['rgb'], thickness)
     return cv2.addWeighted(overlay, alpha, image, 1.0 - alpha, 0)

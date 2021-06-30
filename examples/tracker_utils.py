@@ -18,6 +18,9 @@ def cos_sim(A, B):
 
 def euclid_sim(A, B):
     return np.sqrt(np.sum((A-B)**2))
+def centroid_box(A, B):
+    C = (A + B)/2
+    return np.array(C, dtype=int)
 
 def dist_sim(A, B): # (ovl_score + dist_score) / 2
     Ax1, Ay1, Ax2, Ay2 = A
@@ -51,11 +54,12 @@ def dist_sim(A, B): # (ovl_score + dist_score) / 2
     a_center_pt = [Acx, Acy]
     b_center_pt = [Bcx, Bcy]
 
-    if (a_center_pt < [Bx2,By2] and a_center_pt > [Bx1,By1]) \
-            or (b_center_pt < [Ax2,Ay2] and b_center_pt > [Ax1,Ay1]):
-        return float((ovl_score * 1.0))
+    # if (a_center_pt < [Bx2,By2] and a_center_pt > [Bx1,By1]) \
+    #         or (b_center_pt < [Ax2,Ay2] and b_center_pt > [Ax1,Ay1]):
+    # if(Acx < Bx2 and Acx > Bx1):
+    return float((ovl_score * 1.0))
 
-    return 0.0
+    # return 0.0
 
 # 챌린지 출력파일 저장.
 def print_tracking_result(data, path, this_frame):
