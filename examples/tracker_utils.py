@@ -10,6 +10,19 @@ from torchvision import transforms
 from PIL import Image
 from simsiam.simsiam_standalone import SimsiamSA
 
+
+def convert_img_tensor(src):
+    color_cvt = cv2.cvtColor(src, cv2.COLOR_BGR2RGB)
+    pil_src = Image.fromarray(color_cvt)
+    # trans = transforms.Compose([transforms.Resize((224,112)),
+    #                           transforms.ToTensor()])
+    # trans = transforms.Compose([transforms.Resize((128,64)),
+    #                           transforms.ToTensor()])
+    trans = transforms.Compose([transforms.Resize((256, 128)),
+                                transforms.ToTensor()])
+    trans_target = trans(pil_src)
+    return trans_target
+
 def cal_histogram(img):
     return cv2.calcHist([img], [0], None, [256], [0, 256])
 
