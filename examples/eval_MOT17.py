@@ -1,3 +1,4 @@
+import time
 from collections import deque
 
 import path_roll as roll
@@ -21,6 +22,7 @@ def track_all_seq(target_='train'):
             file_target = os.path.join(osp.join(roll.PREDATA_PATH, seq + '_det.txt'))
             img_target = osp.join(roll.DATA_PATH, dataset, target_, seq, seq)  # MOT17
             T_seq = seq[6:8]
+            cnt_id_dict = {}
             print('img_target ',img_target)
             print('target_file is :', file_target)
             if not (
@@ -66,13 +68,17 @@ def track_all_seq(target_='train'):
                         break
                 # print(type(np.array(det_boxes)))
                 target = st.tracking(np.array(det_boxes), src, frame_cnt)
+                # 트래킹 확인용
                 # overlay_tk = draw_tracker_boxes(src, target, frame_cnt)
                 # cv2.imshow('Video Demo', overlay_tk)
                 # if cv2.waitKey(20) & 0xff == 27:  # exit if pressed `ESC`
                 #     break
                 print_tracking_result(target, challenge_path, frame_cnt)
 
+start = time.time()
 track_all_seq()
+end = time.time()
+print("done. total process time : {0}, FPS : {1}".format(end - start, float(1/((end-start)/5316))))
     # print(times)
     # m, s = divmod(sum(times.values()), 60)
     # print('Completed after ', sum(times.values()), ' / {0}:{1}'.format(int(m), int(s)))

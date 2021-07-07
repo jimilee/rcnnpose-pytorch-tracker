@@ -190,32 +190,32 @@ class simple_tracker():
                     self.trackers[idx]['stat'] = False
 
 
-
-    def simsiam_sim_score(self, target):
-        sim_score = []
-
-        target_trk = [state['feat'].unsqueeze(0) for id, state in self.trackers.items() if state['stat'] is True]
-        len_trk = len(target_trk)
-        if (len_trk > 0):
-            trackers = torch.cat(target_trk, dim=0).cuda(non_blocking=True)
-            ass_mat = self.simsiam.get_association_matrix(self.simsiam.backbone(), trackers,
-                                                          target.unsqueeze(0).cuda(non_blocking=True), k=len_trk)
-            # score 노말라이즈.
-            # print(type(ass_mat['indicies']), type(ass_mat['scores']))
-            # print(ass_mat['indicies'].squeeze().shape, ass_mat['scores'].squeeze().shape)
-            # print(torch.stack([ass_mat['indicies'].squeeze().float(),ass_mat['scores'].squeeze().float()], dim=1))
-            x = torch.stack([ass_mat['indicies'].squeeze().float(), ass_mat['scores'].squeeze().float()],
-                            dim=1).tolist()
-            s = sorted(x, key=lambda x: x[0])
-
-            x = np.array(s)[:, 1]
-            x -= x.min()  # bring the lower range to 0
-            x /= x.max()  # bring the upper range to 1
-            # sim_score = f.normalize(ass_mat['scores'], dim=1).squeeze().tolist()
-            sim_score = np.array(x, dtype=np.float32)
-            sim_score = [0 if i < 0.7 else i for i in sim_score]  # 일정 임계값 이하는 컷
-
-        return sim_score
+    #
+    # def simsiam_sim_score(self, target):
+    #     sim_score = []
+    #
+    #     target_trk = [state['feat'].unsqueeze(0) for id, state in self.trackers.items() if state['stat'] is True]
+    #     len_trk = len(target_trk)
+    #     if (len_trk > 0):
+    #         trackers = torch.cat(target_trk, dim=0).cuda(non_blocking=True)
+    #         ass_mat = self.simsiam.get_association_matrix(self.simsiam.backbone(), trackers,
+    #                                                       target.unsqueeze(0).cuda(non_blocking=True), k=len_trk)
+    #         # score 노말라이즈.
+    #         # print(type(ass_mat['indicies']), type(ass_mat['scores']))
+    #         # print(ass_mat['indicies'].squeeze().shape, ass_mat['scores'].squeeze().shape)
+    #         # print(torch.stack([ass_mat['indicies'].squeeze().float(),ass_mat['scores'].squeeze().float()], dim=1))
+    #         x = torch.stack([ass_mat['indicies'].squeeze().float(), ass_mat['scores'].squeeze().float()],
+    #                         dim=1).tolist()
+    #         s = sorted(x, key=lambda x: x[0])
+    #
+    #         x = np.array(s)[:, 1]
+    #         x -= x.min()  # bring the lower range to 0
+    #         x /= x.max()  # bring the upper range to 1
+    #         # sim_score = f.normalize(ass_mat['scores'], dim=1).squeeze().tolist()
+    #         sim_score = np.array(x, dtype=np.float32)
+    #         sim_score = [0 if i < 0.7 else i for i in sim_score]  # 일정 임계값 이하는 컷
+    #
+    #     return sim_score
 
     def get_score_matrix(self, data_dets, score_matrix):
         target_trk = [state['feat'].unsqueeze(0) for state in self.online_trk]
@@ -244,13 +244,13 @@ class simple_tracker():
                     y /= y.max()  # bring the upper range to 1
                     x = torch.stack([ind.squeeze().float(), torch.Tensor(y).cuda()],
                                     dim=1).tolist()
-
-                for i, score in x:
-                    simsiam_score[int(i)] = score
+                    for i, score in x:
+                        simsiam_score[int(i)] = score
                 simscore.append(simsiam_score)
             for i, sim in enumerate(simscore): #i는 디텍션
                 for j, trk in enumerate(self.online_trk):
-                    score_matrix[i][trk['id']] = 1 - ((1 - score_matrix[i][trk['id']]) * sim[j])
+                    # score_matrix[i][trk['id']] = 1 - ((1 - score_matrix[i][trk['id']]) * sim[j])
+                    score_matrix[i][trk['id']] = 1 - sim[j]
         return score_matrix
 
                     # try:
