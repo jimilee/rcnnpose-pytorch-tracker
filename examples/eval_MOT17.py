@@ -8,7 +8,7 @@ import cv2
 import numpy as np
 
 from examples.tracker_demo import simple_tracker
-from examples.tracker_utils import print_tracking_result
+from examples.tracker_utils import print_tracking_result, save_crop_bbox_img
 from rcnnpose.utils import draw_tracker_boxes
 st = simple_tracker()
 MOT_DATA = roll.TARGET_DATASET
@@ -17,9 +17,9 @@ def track_all_seq(target_='train'):
         print(osp.join(roll.DATA_PATH, dataset, target_))
         for seq in os.listdir(osp.join(roll.DATA_PATH, dataset, target_)):
             st.init_id_tracker(st.max_tracker)
-            path = osp.join(roll.PREDATA_PATH, target_, str(seq), str(seq))
             challenge_path = osp.join(roll.CHALLENGE_PATH, seq[9:], 'MOT16-{0}.txt'.format(seq[6:8]))
-            file_target = os.path.join(osp.join(roll.PREDATA_PATH, seq + '_det.txt'))
+            # file_target = os.path.join(osp.join(roll.PREDATA_PATH, seq + '_det.txt'))
+            file_target = os.path.join(osp.join(roll.PREDATA_PATH, seq, 'gt', 'gt.txt'))
             img_target = osp.join(roll.DATA_PATH, dataset, target_, seq, seq)  # MOT17
             T_seq = seq[6:8]
             cnt_id_dict = {}
@@ -40,8 +40,11 @@ def track_all_seq(target_='train'):
                 while True:
                     line = f.readline()
                     if not line: break
-                    frame, id1, x, y, w, h, score, n1, n2, n3 = line.split(sep=',')
-                    if float(score) > 0.65:  # gt.
+                    # frame, id1, x, y, w, h, score, n1, n2, n3 = line.split(sep=',')
+                    frame, id1, x, y, w, h, score, cls, vis = line.split(sep=',')
+                    print(int(cls))
+                    if int(cls) == 1 and float(vis) > 0.6 :  # gt.
+                        print(frame, id1, x, y, w, h, score, cls, vis)
                         bbox.append((frame, id1, x, y, w, h, score))
 
             bbox = sorted(bbox, key=lambda x: int(x[0]))  # 프레임순 정렬.
@@ -52,6 +55,7 @@ def track_all_seq(target_='train'):
                 frame_cnt = frame_cnt + 1
                 src = cv2.imread(osp.join(img_target, img))
                 det_boxes = []
+                gt_boxes = []
                 while (len(dq)):
                     bbox = dq.popleft()
                     # print(bbox)
@@ -62,18 +66,23 @@ def track_all_seq(target_='train'):
                         bx = sx + int(float(bbox[4]))
                         by = sy + int(float(bbox[5]))
                         det_boxes.append([sx,sy,bx,by])
+                        gt_boxes.append([id,sx,sy,bx,by])
 
                     else:
                         dq.appendleft(bbox)  # 다음 프레임은 다시 넣음
                         break
                 # print(type(np.array(det_boxes)))
-                target = st.tracking(np.array(det_boxes), src, frame_cnt)
+                save_crop_bbox_img(src, np.array(gt_boxes), frame_cnt, seq)
+
+                # target = st.tracking(np.array(det_boxes), src, frame_cnt)
+
                 # 트래킹 확인용
                 # overlay_tk = draw_tracker_boxes(src, target, frame_cnt)
                 # cv2.imshow('Video Demo', overlay_tk)
                 # if cv2.waitKey(20) & 0xff == 27:  # exit if pressed `ESC`
                 #     break
-                print_tracking_result(target, challenge_path, frame_cnt)
+
+                # print_tracking_result(target, challenge_path, frame_cnt)
 
 start = time.time()
 track_all_seq()

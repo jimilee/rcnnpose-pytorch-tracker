@@ -73,7 +73,15 @@ def dist_sim(A, B): # (ovl_score + dist_score) / 2
     return float((ovl_score * 1.0))
 
     # return 0.0
-
+def save_crop_bbox_img(src, bboxes, this_frame, seq):
+    for bbox in bboxes:
+        id, x1, y1, x2, y2 = bbox
+        data = src[y1:y2, x1:x2]
+        print('result/cropped/' + str(seq) + '_{0:04}_{1:04}'.format(this_frame, id) + '.jpg')
+        try:
+            cv2.imwrite('result/cropped/' + str(seq) + '_{0:04}_{1:04}'.format(this_frame, id) + '.jpg', data)
+        except:
+            continue
 # 챌린지 출력파일 저장.
 def print_tracking_result(data, path, this_frame):
     f = open(path, 'a')

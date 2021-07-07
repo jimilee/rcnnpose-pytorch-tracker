@@ -11,7 +11,8 @@ CHALLENGE_PATH = 'C:/Users/CVPR_JIMILEE/Desktop/motchallenge-devkit/res/MOT16/da
 
 PROJECT_PATH = pathlib.Path(__file__).parent.parent.parent.absolute()
 
-PREDATA_PATH = osp.join(PROJECT_PATH, 'MOT16_dets')
+# PREDATA_PATH = osp.join(PROJECT_PATH, 'MOT16_dets')#det
+PREDATA_PATH = osp.join(PROJECT_PATH, 'MOT16', 'train')#gt
 
 MODEL_SAVE_PATH = osp.join(PROJECT_PATH, 'backup','keypoint', 'all')
 
