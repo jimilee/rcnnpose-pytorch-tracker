@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 from rcnnpose.estimator import BodyPoseEstimator
 from rcnnpose.utils import draw_body_connections, draw_keypoints, draw_masks, _draw_box, draw_boxes, draw_tracker_boxes
-from examples.tracker_demo import simple_tracker
+from examples.tracker_demo import tracker
 
 estimator = BodyPoseEstimator(pretrained=True)
 videoclip = cv2.VideoCapture('media/test2.mp4')
@@ -14,7 +14,7 @@ fourcc = cv2.VideoWriter_fourcc(*'DIVX')
 #파일 stream 생성
 out = cv2.VideoWriter('result/test_Result_MOT.avi',fourcc, videoclip.get(cv2.CAP_PROP_FPS), (int(videoclip.get(cv2.CAP_PROP_FRAME_WIDTH)), int(videoclip.get(cv2.CAP_PROP_FRAME_HEIGHT))) )
 total_proctime = 0.0
-st = simple_tracker()
+st = tracker()
 
 frame_cnt = 0
 while videoclip.isOpened():

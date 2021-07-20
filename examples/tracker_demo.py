@@ -4,6 +4,7 @@ import torch
 import torchvision
 import torch.nn.functional as f
 import random, math, time, sys
+import path_roll as roll
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from tracker_utils import cal_histogram, cos_sim, euclid_sim, dist_sim, print_tracking_result, centroid_box, \
     convert_img_tensor
@@ -14,18 +15,18 @@ from simsiam.simsiam_standalone import SimsiamSA
 
 np.set_printoptions(formatter={'float_kind': lambda x: "{0:0.3f}".format(x)})
 challenge_path = 'MOT16-11.txt'
-class simple_tracker():
+class tracker():
     def __init__(self):
         print('init...')
         self.simsiam = SimsiamSA()
         self.trackers = {}
         self.online_trk = []
         self.last_id, self.max_tracker=0,50
-        self.init_id_tracker(self.max_tracker)
         self.minmax_scaler = MinMaxScaler()
         self.stand_scaler = StandardScaler()
 
-    def init_id_tracker(self, max_tracker):
+    def init_id_tracker(self, max_tracker, T_seq):
+        self.T1, self.T2, self.T3 = roll.T[T_seq]
         for i in range(0, max_tracker):
             color = []
             for c in range(3): color.append(random.randrange(0, 256))
@@ -44,6 +45,7 @@ class simple_tracker():
         # trk_feats = [state['feat'].unsqueeze(0) for state in target_trk]   # sim = []
         len_trk = len(target_trk)
         dist_score = np.ones(shape=(len_trk,), dtype=np.float32)
+        eu_result = np.ones(shape=(len_trk,), dtype=np.float32)
         euclid_score = np.ones(shape=(len_trk,), dtype=np.float32)
         # simsiam_score = np.zeros(shape=(len_trk,), dtype=np.float32)
 
@@ -86,9 +88,11 @@ class simple_tracker():
             self.minmax_scaler.fit(euclid)
             eu_result = self.minmax_scaler.transform(euclid)
 
+
         for j, trk in enumerate(target_trk):
             dist_score[j] = dist[j]
-            euclid_score[j] = 1 - eu_result[j]
+            if dist[j] < 0.5:
+                euclid_score[j] = (1 - eu_result[j])
 
         # print('dist_score', dist_score)
         # print('euclid_score', euclid_score)
@@ -189,34 +193,6 @@ class simple_tracker():
                     #                                                               cur_frame))
                     self.trackers[idx]['stat'] = False
 
-
-    #
-    # def simsiam_sim_score(self, target):
-    #     sim_score = []
-    #
-    #     target_trk = [state['feat'].unsqueeze(0) for id, state in self.trackers.items() if state['stat'] is True]
-    #     len_trk = len(target_trk)
-    #     if (len_trk > 0):
-    #         trackers = torch.cat(target_trk, dim=0).cuda(non_blocking=True)
-    #         ass_mat = self.simsiam.get_association_matrix(self.simsiam.backbone(), trackers,
-    #                                                       target.unsqueeze(0).cuda(non_blocking=True), k=len_trk)
-    #         # score 노말라이즈.
-    #         # print(type(ass_mat['indicies']), type(ass_mat['scores']))
-    #         # print(ass_mat['indicies'].squeeze().shape, ass_mat['scores'].squeeze().shape)
-    #         # print(torch.stack([ass_mat['indicies'].squeeze().float(),ass_mat['scores'].squeeze().float()], dim=1))
-    #         x = torch.stack([ass_mat['indicies'].squeeze().float(), ass_mat['scores'].squeeze().float()],
-    #                         dim=1).tolist()
-    #         s = sorted(x, key=lambda x: x[0])
-    #
-    #         x = np.array(s)[:, 1]
-    #         x -= x.min()  # bring the lower range to 0
-    #         x /= x.max()  # bring the upper range to 1
-    #         # sim_score = f.normalize(ass_mat['scores'], dim=1).squeeze().tolist()
-    #         sim_score = np.array(x, dtype=np.float32)
-    #         sim_score = [0 if i < 0.7 else i for i in sim_score]  # 일정 임계값 이하는 컷
-    #
-    #     return sim_score
-
     def get_score_matrix(self, data_dets, score_matrix):
         target_trk = [state['feat'].unsqueeze(0) for state in self.online_trk]
         len_trk = len(target_trk)
@@ -249,8 +225,11 @@ class simple_tracker():
                 simscore.append(simsiam_score)
             for i, sim in enumerate(simscore): #i는 디텍션
                 for j, trk in enumerate(self.online_trk):
-                    # score_matrix[i][trk['id']] = 1 - ((1 - score_matrix[i][trk['id']]) * sim[j])
-                    score_matrix[i][trk['id']] = 1 - sim[j]
+                    if score_matrix[i][trk['id']] < 0.5:
+                        score_matrix[i][trk['id']] = 1 - (((1 - score_matrix[i][trk['id']])* 0.0) + (sim[j]*1.0))
+                    else:
+                        score_matrix[i][trk['id']] = 10.0
+                        # score_matrix[i][trk['id']] = 1 - sim[j]
         return score_matrix
 
                     # try:
@@ -300,13 +279,13 @@ class simple_tracker():
             for j, trk in enumerate(self.online_trk):
                 # try:
                 # if dist_score[j] > 0.6 :
-                score_matrix[i][trk['id']] = 1 - ((euclid_score[j] * 0.3)+ (dist_score[j] * 0.7))
+                score_matrix[i][trk['id']] = 1 - ((euclid_score[j] * self.T2)+ (dist_score[j] * self.T3))
 
                 # except:
                 #     print(j,i ,'is passed.')
                 #     pass
             target_det.append(det_data)
-
+        #simsiam
         if len(target_det)>0:
             score_matrix = self.get_score_matrix(target_det, score_matrix)
 
