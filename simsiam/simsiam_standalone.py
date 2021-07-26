@@ -11,7 +11,7 @@ from simsiam.models import SimSiam
 class SimsiamSA():
     def __init__(self):
         self.model = SimSiam().cuda()
-        self.model.load_state_dict(torch.load('E:/_workspace/rcnnpose-pytorch-tracker/simsiam/ckpt/simsiam_originality2.pt'))
+        self.model.load_state_dict(torch.load('E:/_workspace/rcnnpose-pytorch-tracker/simsiam/ckpt/MOT Aug( w cutout, jitter0.2)+Market C-Pose-GAN Aug (w cutout.pt'))
         self.model.eval()
 
     def backbone(self):

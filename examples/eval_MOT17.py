@@ -80,7 +80,7 @@ def track_all_seq(target_='train'):
 
                 target = st.tracking(np.array(det_boxes), src, frame_cnt)
 
-                # 트래킹 확인용
+                # 트래킹오버레이 확인용 화면 출력.
                 # overlay_tk = draw_tracker_boxes(src, target, frame_cnt)
                 # cv2.imshow('Video Demo', overlay_tk)
                 # if cv2.waitKey(20) & 0xff == 27:  # exit if pressed `ESC`
@@ -91,7 +91,7 @@ def track_all_seq(target_='train'):
 start = time.time()
 track_all_seq()
 end = time.time()
-print("done. total process time : {0}, FPS : {1}".format(end - start, float(1/((end-start)/5316))))
+print("done. total process time : {0}, FPS : {1}".format(end - start, float(1/((end-start)/5316)))) #5316 is total frame of MOT train-set
     # print(times)
     # m, s = divmod(sum(times.values()), 60)
     # print('Completed after ', sum(times.values()), ' / {0}:{1}'.format(int(m), int(s)))
