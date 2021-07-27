@@ -9,7 +9,7 @@ import os.path as osp
 import cv2
 import numpy as np
 
-from examples.tracker_demo import tracker
+from examples.tracker import tracker
 from examples.tracker_utils import print_tracking_result, save_crop_bbox_img
 from rcnnpose.utils import draw_tracker_boxes
 

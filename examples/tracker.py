@@ -186,7 +186,6 @@ class tracker():
                 # if self.occluded_tracker(self.trackers[idx]):
                 #     age_TH = 5
                 if int(cur_frame - self.trackers[idx]['frame']) > age_TH:
-                    #
                     # print('트래커 제거 id :{0}, frame : {1}, cur_frame: {2}'.format(
                     #                                                               self.trackers[idx]['id'],
                     #                                                               self.trackers[idx]['frame'],
@@ -226,7 +225,7 @@ class tracker():
             for i, sim in enumerate(simscore): #i는 디텍션
                 for j, trk in enumerate(self.online_trk):
                     if score_matrix[i][trk['id']] < 0.5:
-                        score_matrix[i][trk['id']] = 1 - (((1 - score_matrix[i][trk['id']])* 0.0) + (sim[j]*1.0))
+                        score_matrix[i][trk['id']] = 1 - (((1 - score_matrix[i][trk['id']])* 0.45) + (sim[j]*0.55))
                     else:
                         score_matrix[i][trk['id']] = 10.0
                         # score_matrix[i][trk['id']] = 1 - sim[j]
