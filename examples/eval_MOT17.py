@@ -8,7 +8,6 @@ import os
 import os.path as osp
 import cv2
 import numpy as np
-
 from examples.tracker import tracker
 from examples.tracker_utils import print_tracking_result, save_crop_bbox_img
 from rcnnpose.utils import draw_tracker_boxes
@@ -47,7 +46,7 @@ def track_all_seq(target_='train'):
                     frame, id1, x, y, w, h, score, n1, n2, n3 = line.split(sep=',')
                     # frame, id1, x, y, w, h, score, cls, vis = line.split(sep=',') #gt
                     # if int(cls) == 1 and float(vis) > 0.6 :  # gt.
-                    if float(score) > 0.65:
+                    if float(score) > roll.detTH:
                         # print(frame, id1, x, y, w, h, score, cls, vis)
                         bbox.append((frame, id1, x, y, w, h, score))
 

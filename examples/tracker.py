@@ -6,8 +6,8 @@ import torch.nn.functional as f
 import random, math, time, sys
 import path_roll as roll
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
-from tracker_utils import cal_histogram, cos_sim, euclid_sim, dist_sim, print_tracking_result, centroid_box, \
-    convert_img_tensor
+from tracker_utils import cal_histogram, cos_sim, euclid_sim, ext_ovl_sim, print_tracking_result, centroid_box, \
+    convert_img_tensor, ext_dist_sim
 from scipy.optimize import linear_sum_assignment
 from torchvision import transforms
 from PIL import Image
@@ -73,7 +73,7 @@ class tracker():
 
         for j, trk in enumerate(target_trk):
             # print(target)
-            dist.append(dist_sim(target['box'], trk['box']))
+            dist.append(ext_dist_sim(target['box'], trk['box']))
             euclid.append(euclid_sim(target['hist'], trk['hist']))
 
         if (len(dist) > 0):
@@ -90,9 +90,9 @@ class tracker():
 
 
         for j, trk in enumerate(target_trk):
-            dist_score[j] = dist[j]
-            if dist[j] < 0.5:
-                euclid_score[j] = (1 - eu_result[j])
+            dist_score[j] = (1 - dist[j])
+            #if dist[j] < 0.5:
+            euclid_score[j] = (1 - eu_result[j])
 
         # print('dist_score', dist_score)
         # print('euclid_score', euclid_score)
@@ -225,7 +225,7 @@ class tracker():
             for i, sim in enumerate(simscore): #i는 디텍션
                 for j, trk in enumerate(self.online_trk):
                     if score_matrix[i][trk['id']] < 0.5:
-                        score_matrix[i][trk['id']] = 1 - (((1 - score_matrix[i][trk['id']])* 0.45) + (sim[j]*0.55))
+                        score_matrix[i][trk['id']] = 1 - (((1 - score_matrix[i][trk['id']])* roll.SC1) + (sim[j] * roll.SC2))
                     else:
                         score_matrix[i][trk['id']] = 10.0
                         # score_matrix[i][trk['id']] = 1 - sim[j]
@@ -248,8 +248,8 @@ class tracker():
             x1, y1 = det[:2]
             x2, y2 = det[2:]
 
-            if (x2-x1) < 30 or (y2-y1) < 30:
-                continue
+            #if (x2-x1) < 30 or (y2-y1) < 30:
+            #    continue
             # feat = src.crop((max(x1, 0), max(y1, 0), min(x2, src.size[0]), min(y2, src.size[1])))
             feat = src[y1:y2, x1:x2]
             roi_hsv = cv2.cvtColor(feat, cv2.COLOR_BGR2HSV)

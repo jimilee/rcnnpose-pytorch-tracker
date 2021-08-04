@@ -35,7 +35,23 @@ def centroid_box(A, B):
     C = (A + B)/2
     return np.array(C, dtype=int)
 
-def dist_sim(A, B): # (ovl_score + dist_score) / 2
+def ext_dist_sim(A, B):
+    Ax1, Ay1, Ax2, Ay2 = A
+    Bx1, By1, Bx2, By2 = B
+
+    Acx, Acy = Ax1+((Ax2-Ax1)/2), Ay1 + ((Ay2- Ay1)/2)
+    Bcx, Bcy = (Bx1+((Bx2-Bx1)/2)), (By1 + ((By2- By1)/2))
+    p = Acx - Bcx
+    q = Acy - Bcy
+    dist = math.sqrt((p**2) + (q**2))
+    distTH = ((Ax2 - Ax1) * (Ay2 - Ay1))/3
+
+    if dist<distTH:
+        return (float)(dist/distTH)
+    else:
+        return 1
+
+def ext_ovl_sim(A, B): # (ovl_score + dist_score) / 2
     Ax1, Ay1, Ax2, Ay2 = A
     Bx1, By1, Bx2, By2 = B
 
