@@ -302,7 +302,7 @@ class tracker():
         # id -> idx 로 저장해야됨.
         for idx, id in enumerate(hungarian_result):  # id_update.
             if idx < len(target_det) and id < self.max_tracker:
-                if self.trackers[id]['stat'] == True and score_matrix[idx][id] < 0.5:  # and score_matrix[idx][id] < 0.5  self.trackers[id]['frame'] >= frame_cnt-1
+                if self.trackers[id]['stat'] == True and score_matrix[idx][id] < roll.updateTH:  # and score_matrix[idx][id] < 0.5  self.trackers[id]['frame'] >= frame_cnt-1
                     # print('업데이트 타겟. id : {0} -> idx: {1}'.format(self.trackers[id]['id'], idx))
                     self.tracker_provider(target_=target_det[idx],
                                           t_id=self.trackers[id]['id'], update=True) # 트래커 업데이트

@@ -3,6 +3,7 @@ from collections import deque
 
 from tqdm import tqdm
 
+import winsound as sd
 import path_roll as roll
 import os
 import os.path as osp
@@ -11,6 +12,11 @@ import numpy as np
 from examples.tracker import tracker
 from examples.tracker_utils import print_tracking_result, save_crop_bbox_img
 from rcnnpose.utils import draw_tracker_boxes
+
+def beepsound():
+    fr = 2000    # range : 37 ~ 32767
+    du = 1000     # 1000 ms ==1second
+    sd.Beep(fr, du) # winsound.Beep(frequency, duration)
 
 MOT_DATA = roll.TARGET_DATASET
 def track_all_seq(target_='train'):
@@ -91,6 +97,8 @@ start = time.time()
 track_all_seq()
 end = time.time()
 print("done. total process time : {0}, FPS : {1}".format(end - start, float(1/((end-start)/5316)))) #5316 is total frame of MOT train-set
+
+beepsound()
     # print(times)
     # m, s = divmod(sum(times.values()), 60)
     # print('Completed after ', sum(times.values()), ' / {0}:{1}'.format(int(m), int(s)))

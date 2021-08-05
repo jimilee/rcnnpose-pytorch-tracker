@@ -26,12 +26,13 @@ if DATA_PATH is None:
 if OUTPUT_PATH is None:
     OUTPUT_PATH = osp.join(PROJECT_PATH, 'output')
 
-SC1 = 1.0
-SC2 = 0.0
+SC1 = 1.0 # simsiam score
+SC2 = 0.0 # geometric score
 detTH = 0.6
+updateTH = 1.0
 
 T = {'02':[0.0, 0.6, 0.4], ##train
-     '04':[0.0, 0.8, 0.2], ## fix
+     '04':[0.0, 0.2, 0.8], ## fix
      '05':[0.0, 0.6, 0.4], ## fix
      '09':[0.0, 0.6, 0.4], ##
      '10':[0.0, 0.6, 0.4], ## fix
