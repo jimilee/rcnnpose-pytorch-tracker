@@ -35,6 +35,7 @@ class tracker():
                                 'feat': 0,
                                 'frame': 0,
                                 'hist': 0,
+                                'atan': 0,
                                 'rgb': color,
                                 'occ': False}
 
@@ -42,34 +43,10 @@ class tracker():
     def bbox_sim_score(self, target):
         dist, euclid = [], []
         target_trk = self.online_trk
-        # trk_feats = [state['feat'].unsqueeze(0) for state in target_trk]   # sim = []
         len_trk = len(target_trk)
         dist_score = np.ones(shape=(len_trk,), dtype=np.float32)
         eu_result = np.ones(shape=(len_trk,), dtype=np.float32)
         euclid_score = np.ones(shape=(len_trk,), dtype=np.float32)
-        # simsiam_score = np.zeros(shape=(len_trk,), dtype=np.float32)
-
-        # print('트래커 아이디 확인.',target_)
-        # if(len_trk > 0):
-        #     trackers = torch.cat(trk_feats, dim=0).cuda(non_blocking=True)
-        #     ass_mat = self.simsiam.get_association_matrix(self.simsiam.backbone(), trackers, target['feat'].unsqueeze(0).cuda(non_blocking=True), k=min(len_trk, 5))
-        #     #score 노말라이즈.
-        #     if(len_trk==1):
-        #         x = torch.stack([ass_mat['indicies'].squeeze().float(),ass_mat['scores'].squeeze().float()], dim=0).tolist()
-        #         simsiam_score[int(x[0])] = 0.5
-        #     else:
-        #         x = torch.stack([ass_mat['indicies'].squeeze().float(), ass_mat['scores'].squeeze().float()],
-        #                         dim=1).tolist()
-        #
-        #         y = np.array(x)[:, 1]
-        #         y -= y.min()  # bring the lower range to 0
-        #         y /= y.max()  # bring the upper range to 1
-        #         x = torch.stack([ass_mat['indicies'].squeeze().float(), torch.Tensor(y).cuda()],
-        #                         dim=1).tolist()
-        #         for i, score in x:
-        #             simsiam_score[int(i)] = score
-        #
-        # sim_result = np.array(simsiam_score).reshape(len_trk, )
 
         for j, trk in enumerate(target_trk):
             # print(target)
@@ -107,7 +84,7 @@ class tracker():
     def tracker_provider(self, target_, t_id=None, update=False):
         if self.last_id >= self.max_tracker - 1:
             self.last_id = 0
-
+        # update tracker
         if update and t_id is not None:
             rgb = self.trackers[t_id]['rgb']
             if self.occluded_tracker(target_['box'], ovl_th=0.5):
@@ -130,7 +107,7 @@ class tracker():
                                    'feat': tracker_feat,
                                    'rgb': rgb,
                                    'occ' : trk_occ}
-
+        # generate tracker
         # if d_id != -1:
         #     self.id_table[d_id]['stat'] = False
         elif self.last_id < self.max_tracker: #self.last_id < self.max_tracker and
@@ -144,7 +121,8 @@ class tracker():
                                          'hist': target_['hist'],
                                          'feat': target_['feat'],
                                          'rgb': rgb,
-                                         'occ': False}
+                                         'occ': False
+                                         'atan': -1}
 
                     # print(id, '트래커 할당.', self.trackers[id])
                     return int(id)
@@ -224,10 +202,10 @@ class tracker():
                 simscore.append(simsiam_score)
             for i, sim in enumerate(simscore): #i는 디텍션
                 for j, trk in enumerate(self.online_trk):
-                    if score_matrix[i][trk['id']] < 0.5:
-                        score_matrix[i][trk['id']] = 1 - (((1 - score_matrix[i][trk['id']])* roll.SC1) + (sim[j] * roll.SC2))
+                    if score_matrix[i][trk['id']] < roll.hierarchy:
+                        score_matrix[i][trk['id']] = 1 - (((1 - score_matrix[i][trk['id']])* roll.SC1) * (sim[j] * roll.SC2))
                     else:
-                        score_matrix[i][trk['id']] = 10.0
+                        score_matrix[i][trk['id']] = score_matrix[i][trk['id']]
                         # score_matrix[i][trk['id']] = 1 - sim[j]
         return score_matrix
 
@@ -271,13 +249,12 @@ class tracker():
                 det_data['id'] = self.tracker_provider(det_data)  # 트래커 생성
                 continue
 
-
             dist_score, euclid_score = self.bbox_sim_score(det_data)
             # # sim_score = self.simsiam_sim_score(tensor_src)
             # # print(len(dist_score), len(sim_score), len(self.online_trk))
             for j, trk in enumerate(self.online_trk):
                 # try:
-                # if dist_score[j] > 0.6 :
+                #if dist_score[j] > 0.6 :
                 score_matrix[i][trk['id']] = 1 - ((euclid_score[j] * self.T2)+ (dist_score[j] * self.T3))
 
                 # except:
@@ -308,7 +285,7 @@ class tracker():
                                           t_id=self.trackers[id]['id'], update=True) # 트래커 업데이트
                     target_det[idx]['id'] = self.trackers[id]['id']
 
-                if target_det[idx]['id'] == -1 and not self.occluded_tracker(target=target_det[idx]['box'], ovl_th= 0.0):# 타겟 아이디가 -1 일때.(아직 할당 x, 새로 생긴 객체)
+                if target_det[idx]['id'] == -1 and not self.occluded_tracker(target=target_det[idx]['box'], ovl_th= 0.5):# 타겟 아이디가 -1 일때.(아직 할당 x, 새로 생긴 객체)
                     target_det[idx]['id'] = self.tracker_provider(target_det[idx])  # 트래커 생성
                     # print('트래커 생성. id:', target_det[idx]['id'] ,target_det[idx]['id'] == -1,
                     #       self.occluded_tracker(target=target_det[idx]['box'], ovl_th=0.3))

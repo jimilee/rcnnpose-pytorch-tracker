@@ -14,7 +14,7 @@ from examples.tracker_utils import print_tracking_result, save_crop_bbox_img
 from rcnnpose.utils import draw_tracker_boxes
 
 def beepsound():
-    fr = 2000    # range : 37 ~ 32767
+    fr = 1500    # range : 37 ~ 32767
     du = 1000     # 1000 ms ==1second
     sd.Beep(fr, du) # winsound.Beep(frequency, duration)
 
@@ -26,9 +26,9 @@ def track_all_seq(target_='train'):
         for seq in os.listdir(osp.join(roll.DATA_PATH, dataset, target_)):
             T_seq = seq[6:8]
             st.init_id_tracker(st.max_tracker, T_seq)
-            challenge_path = osp.join(roll.CHALLENGE_PATH, seq[9:], 'MOT16-{0}.txt'.format(seq[6:8]))
+            challenge_path = osp.join(roll.CHALLENGE_PATH, seq[9:], '{0}.txt'.format(seq))
             file_target = os.path.join(osp.join(roll.PREDATA_PATH, seq + '_det.txt'))
-            # file_target = os.path.join(osp.join(roll.PREDATA_PATH, seq, 'gt', 'gt.txt'))
+            #file_target = os.path.join(osp.join(roll.PREDATA_PATH, seq, 'gt', 'gt.txt'))
             img_target = osp.join(roll.DATA_PATH, dataset, target_, seq, seq)  # MOT17
 
             cnt_id_dict = {}
@@ -50,8 +50,8 @@ def track_all_seq(target_='train'):
                     line = f.readline()
                     if not line: break
                     frame, id1, x, y, w, h, score, n1, n2, n3 = line.split(sep=',')
-                    # frame, id1, x, y, w, h, score, cls, vis = line.split(sep=',') #gt
-                    # if int(cls) == 1 and float(vis) > 0.6 :  # gt.
+                    #frame, id1, x, y, w, h, score, cls, vis = line.split(sep=',') #gt
+                    #if int(cls) == 1 and float(vis) > 0.4 :  # gt.
                     if float(score) > roll.detTH:
                         # print(frame, id1, x, y, w, h, score, cls, vis)
                         bbox.append((frame, id1, x, y, w, h, score))

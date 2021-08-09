@@ -12,7 +12,7 @@ CHALLENGE_PATH = 'C:/Users/CVPR_JIMILEE/Desktop/motchallenge-devkit/res/MOT16/da
 PROJECT_PATH = pathlib.Path(__file__).parent.parent.parent.absolute()
 
 PREDATA_PATH = osp.join(PROJECT_PATH, 'MOT16_dets')#det
-# PREDATA_PATH = osp.join(PROJECT_PATH, 'MOT16', 'train')#gt
+#PREDATA_PATH = osp.join(PROJECT_PATH, 'MOT20', 'train')#gt
 
 # Absolute path where datasets and processed data (e.g. precomputed embeddings) will be stored
 DATA_PATH = None
@@ -26,12 +26,12 @@ if DATA_PATH is None:
 if OUTPUT_PATH is None:
     OUTPUT_PATH = osp.join(PROJECT_PATH, 'output')
 
-SC1 = 1.0 # simsiam score
-SC2 = 0.0 # geometric score
+SC1 = 1.0 # geometric score
+SC2 = 1.0 # simsiam score
 detTH = 0.6
-updateTH = 1.0
-
-T = {'02':[0.0, 0.6, 0.4], ##train
+updateTH = 0.8
+hierarchy = 0.5
+T = {'02':[0.0, 0.2, 0.8], ##train
      '04':[0.0, 0.2, 0.8], ## fix
      '05':[0.0, 0.6, 0.4], ## fix
      '09':[0.0, 0.6, 0.4], ##

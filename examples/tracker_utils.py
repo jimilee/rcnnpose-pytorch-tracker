@@ -34,6 +34,26 @@ def euclid_sim(A, B):
 def centroid_box(A, B):
     C = (A + B)/2
     return np.array(C, dtype=int)
+def atan2(A,B):
+    Ax1, Ay1, Ax2, Ay2 = A
+    Bx1, By1, Bx2, By2 = B
+    Acx, Acy = Ax1 + ((Ax2 - Ax1) / 2), Ay1 + ((Ay2 - Ay1) / 2)
+    Bcx, Bcy = (Bx1 + ((Bx2 - Bx1) / 2)), (By1 + ((By2 - By1) / 2))
+    Dx, Dy = 0, 0
+    Dx = (Acx - Bcx) if Acx > Bcx else (Bcx - Acx)
+    Dy = (Acy - Bcy) if Acy > Bcy else (Bcy - Acy)
+    return math.atan2(Dy,Dx)
+
+def ext_atan2_sim(A, B, atan):
+    Ax1, Ay1, Ax2, Ay2 = A
+    Bx1, By1, Bx2, By2 = B
+    Acx, Acy = Ax1+((Ax2-Ax1)/2), Ay1 + ((Ay2- Ay1)/2)
+    Bcx, Bcy = (Bx1+((Bx2-Bx1)/2)), (By1 + ((By2- By1)/2))
+    Dx,Dy = 0,0
+    Dx = (Acx - Bcx) if Acx > Bcx else (Bcx - Acx)
+    Dy = (Acy - Bcy) if Acy > Bcy else (Bcy - Acy)
+    result = math.atan2(Dy,Dx)
+    return abs(result - atan)
 
 def ext_dist_sim(A, B):
     Ax1, Ay1, Ax2, Ay2 = A
@@ -94,9 +114,9 @@ def save_crop_bbox_img(src, bboxes, this_frame, seq):
     for bbox in bboxes:
         id, x1, y1, x2, y2 = bbox
         data = src[y1:y2, x1:x2]
-        print('result/cropped/' + str(seq) + '_{0:04}_{1:04}'.format(this_frame, id) + '.jpg')
+        print('result/cropped/MOT20/' + str(seq) + '20_{0:04}_{1:04}'.format(this_frame, id) + '.jpg')
         try:
-            cv2.imwrite('result/cropped/' + str(seq) + '_{0:04}_{1:04}'.format(this_frame, id) + '.jpg', data)
+            cv2.imwrite('result/cropped/MOT20/' + str(seq) + '20_{0:04}_{1:04}'.format(this_frame, id) + '.jpg', data)
         except:
             continue
 
