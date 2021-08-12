@@ -7,7 +7,7 @@ import random, math, time, sys
 import path_roll as roll
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from tracker_utils import cal_histogram, cos_sim, euclid_sim, ext_ovl_sim, print_tracking_result, centroid_box, \
-    convert_img_tensor, ext_dist_sim
+    convert_img_tensor, ext_dist_sim, ext_atan2_sim, atan2
 from scipy.optimize import linear_sum_assignment
 from torchvision import transforms
 from PIL import Image
@@ -41,40 +41,40 @@ class tracker():
 
 
     def bbox_sim_score(self, target):
-        dist, euclid = [], []
+        dist, euclid, degree = [], [], []
         target_trk = self.online_trk
         len_trk = len(target_trk)
         dist_score = np.ones(shape=(len_trk,), dtype=np.float32)
         eu_result = np.ones(shape=(len_trk,), dtype=np.float32)
         euclid_score = np.ones(shape=(len_trk,), dtype=np.float32)
+        degree_score = np.ones(shape=(len_trk,), dtype=np.float32)
 
         for j, trk in enumerate(target_trk):
             # print(target)
             dist.append(ext_dist_sim(target['box'], trk['box']))
             euclid.append(euclid_sim(target['hist'], trk['hist']))
+            degree.append(ext_atan2_sim(target['box'], trk['box'], trk['atan']))
 
         if (len(dist) > 0):
             dist = np.array(dist).reshape(len_trk, 1)
             euclid = np.array(euclid).reshape(len_trk, 1)
-            # simsiam_score = np.array(simsiam_score).reshape(len_trk, 1)
+            degree = np.array(degree).reshape(len_trk, 1)
 
-            # self.minmax_scaler.fit(dist)
-            # result = self.minmax_scaler.transform(dist)
-            # self.minmax_scaler.fit(simsiam_score)
-            # sim_result = self.minmax_scaler.transform(simsiam_score)
             self.minmax_scaler.fit(euclid)
-            eu_result = self.minmax_scaler.transform(euclid)
+            euclid_score = self.minmax_scaler.transform(euclid)
+            euclid_score = 1 - euclid_score
 
+            self.minmax_scaler.fit(degree)
+            degree_score = self.minmax_scaler.transform(degree)
+            degree_score = 1 - degree_score
 
         for j, trk in enumerate(target_trk):
             dist_score[j] = (1 - dist[j])
-            #if dist[j] < 0.5:
-            euclid_score[j] = (1 - eu_result[j])
 
         # print('dist_score', dist_score)
         # print('euclid_score', euclid_score)
         # print('sim_result', sim_result)  #, sim_result
-        return dist_score, euclid_score
+        return dist_score, euclid_score, degree_score
 
 
     # 트래커 초기화 및 업데이트.
@@ -87,17 +87,19 @@ class tracker():
         # update tracker
         if update and t_id is not None:
             rgb = self.trackers[t_id]['rgb']
-            if self.occluded_tracker(target_['box'], ovl_th=0.5):
+            tracker_atan = atan2(target_['box'], self.trackers[t_id]['box'])
+            if not self.occluded_tracker(target_['box'], ovl_th=roll.ovlTH, t_id = t_id):
                 tracker_feat = target_['feat']
                 tracker_hist = target_['hist']
-                tracker_bbox = centroid_box(target_['box'], self.trackers[t_id]['box'])
+                #tracker_bbox = centroid_box(target_['box'], self.trackers[t_id]['box'])
+                tracker_bbox = target_['box']
                 trk_occ = True
-
 
             else:
                 tracker_feat = self.trackers[t_id]['feat']
                 tracker_hist = self.trackers[t_id]['hist']
-                tracker_bbox = centroid_box(target_['box'], self.trackers[t_id]['box'])
+                #tracker_bbox = centroid_box(target_['box'], self.trackers[t_id]['box'])
+                tracker_bbox = target_['box']
                 trk_occ = False
                 # print('트래커 업데이트 id :{0}, frame : {1}, cur_frame: {2}'.format(self.trackers[t_id]['id'],
             #                                                            self.trackers[t_id]['frame'], target_['frame']))
@@ -106,6 +108,7 @@ class tracker():
                                    'hist': tracker_hist,
                                    'feat': tracker_feat,
                                    'rgb': rgb,
+                                   'atan': tracker_atan,
                                    'occ' : trk_occ}
         # generate tracker
         # if d_id != -1:
@@ -121,16 +124,16 @@ class tracker():
                                          'hist': target_['hist'],
                                          'feat': target_['feat'],
                                          'rgb': rgb,
-                                         'occ': False
+                                         'occ': False,
                                          'atan': -1}
 
                     # print(id, '트래커 할당.', self.trackers[id])
                     return int(id)
 
-    def occluded_tracker(self, target, ovl_th=0.5):
+    def occluded_tracker(self, target, ovl_th=0.5, t_id=-1):
         Ax1, Ay1, Ax2, Ay2 = target
         for tracker in self.online_trk:
-            if tracker['stat'] is True:  # and self.id_table[idx]['frame'] == cur_frame
+            if tracker['stat'] is True and tracker['id']!= t_id:  # and self.id_table[idx]['frame'] == cur_frame
                 Bx1, By1, Bx2, By2 = tracker['box']
 
                 # box = (x1, y1, x2, y2)
@@ -149,7 +152,7 @@ class tracker():
 
                 inter = w * h
                 iou = inter / (box1_area + box2_area - inter)
-                if iou > 0.8: continue #매칭 될 타겟으로 간주.
+                #if iou > 0.8: continue #매칭 될 타겟으로 간주.
                 ovl_score = iou
 
                 if ovl_score > ovl_th and (Ay2 - Ay1) < (By2 - By1): #
@@ -161,19 +164,12 @@ class tracker():
         age_TH = 10
         for idx, tracker in self.trackers.items():
             if self.trackers[idx]['stat'] is True:
-                # if self.occluded_tracker(self.trackers[idx]):
-                #     age_TH = 5
                 if int(cur_frame - self.trackers[idx]['frame']) > age_TH:
-                    # print('트래커 제거 id :{0}, frame : {1}, cur_frame: {2}'.format(
-                    #                                                               self.trackers[idx]['id'],
-                    #                                                               self.trackers[idx]['frame'],
-                    #                                                               cur_frame))
                     self.trackers[idx]['stat'] = False
 
     def get_score_matrix(self, data_dets, score_matrix):
         target_trk = [state['feat'].unsqueeze(0) for state in self.online_trk]
         len_trk = len(target_trk)
-
         simscore = []
         if (len_trk > 0):
             trackers = torch.cat(target_trk, dim=0).cuda(non_blocking=True)
@@ -203,9 +199,9 @@ class tracker():
             for i, sim in enumerate(simscore): #i는 디텍션
                 for j, trk in enumerate(self.online_trk):
                     if score_matrix[i][trk['id']] < roll.hierarchy:
-                        score_matrix[i][trk['id']] = 1 - (((1 - score_matrix[i][trk['id']])* roll.SC1) * (sim[j] * roll.SC2))
+                        score_matrix[i][trk['id']] = 1 - (((1 - score_matrix[i][trk['id']])* roll.SC1) + (sim[j] * roll.SC2))
                     else:
-                        score_matrix[i][trk['id']] = score_matrix[i][trk['id']]
+                        score_matrix[i][trk['id']] = 10.0
                         # score_matrix[i][trk['id']] = 1 - sim[j]
         return score_matrix
 
@@ -249,13 +245,13 @@ class tracker():
                 det_data['id'] = self.tracker_provider(det_data)  # 트래커 생성
                 continue
 
-            dist_score, euclid_score = self.bbox_sim_score(det_data)
+            dist_score, euclid_score, degree_score = self.bbox_sim_score(det_data)
             # # sim_score = self.simsiam_sim_score(tensor_src)
             # # print(len(dist_score), len(sim_score), len(self.online_trk))
             for j, trk in enumerate(self.online_trk):
                 # try:
                 #if dist_score[j] > 0.6 :
-                score_matrix[i][trk['id']] = 1 - ((euclid_score[j] * self.T2)+ (dist_score[j] * self.T3))
+                score_matrix[i][trk['id']] = 1 - ((degree_score[j] * self.T1) + (dist_score[j] * self.T2) + (euclid_score[j] * self.T3))
 
                 # except:
                 #     print(j,i ,'is passed.')

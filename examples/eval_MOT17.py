@@ -18,8 +18,8 @@ def beepsound():
     du = 1000     # 1000 ms ==1second
     sd.Beep(fr, du) # winsound.Beep(frequency, duration)
 
-MOT_DATA = roll.TARGET_DATASET
 def track_all_seq(target_='train'):
+    MOT_DATA = roll.TARGET_DATASET
     st = tracker()
     for dataset in MOT_DATA:
         print(osp.join(roll.DATA_PATH, dataset, target_))

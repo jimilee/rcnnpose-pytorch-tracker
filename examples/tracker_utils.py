@@ -31,28 +31,32 @@ def cos_sim(A, B):
 
 def euclid_sim(A, B):
     return np.sqrt(np.sum((A-B)**2))
+
 def centroid_box(A, B):
     C = (A + B)/2
     return np.array(C, dtype=int)
+
 def atan2(A,B):
-    Ax1, Ay1, Ax2, Ay2 = A
-    Bx1, By1, Bx2, By2 = B
+    Ax1, Ay1, Ax2, Ay2 = A #target
+    Bx1, By1, Bx2, By2 = B #tracker
     Acx, Acy = Ax1 + ((Ax2 - Ax1) / 2), Ay1 + ((Ay2 - Ay1) / 2)
     Bcx, Bcy = (Bx1 + ((Bx2 - Bx1) / 2)), (By1 + ((By2 - By1) / 2))
     Dx, Dy = 0, 0
-    Dx = (Acx - Bcx) if Acx > Bcx else (Bcx - Acx)
-    Dy = (Acy - Bcy) if Acy > Bcy else (Bcy - Acy)
+    Dx = (Acx - Bcx) #if Acx > Bcx else (Bcx - Acx)
+    Dy = (Acy - Bcy) #if Acy > Bcy else (Bcy - Acy)
     return math.atan2(Dy,Dx)
 
 def ext_atan2_sim(A, B, atan):
+    if atan == -1: return 0 #초기 트래커
     Ax1, Ay1, Ax2, Ay2 = A
     Bx1, By1, Bx2, By2 = B
     Acx, Acy = Ax1+((Ax2-Ax1)/2), Ay1 + ((Ay2- Ay1)/2)
     Bcx, Bcy = (Bx1+((Bx2-Bx1)/2)), (By1 + ((By2- By1)/2))
     Dx,Dy = 0,0
-    Dx = (Acx - Bcx) if Acx > Bcx else (Bcx - Acx)
-    Dy = (Acy - Bcy) if Acy > Bcy else (Bcy - Acy)
+    Dx = (Acx - Bcx) #if Acx > Bcx else (Bcx - Acx)
+    Dy = (Acy - Bcy) #if Acy > Bcy else (Bcy - Acy)
     result = math.atan2(Dy,Dx)
+    #print(result, atan, 'atan result. : ', abs(result - atan))
     return abs(result - atan)
 
 def ext_dist_sim(A, B):
@@ -60,7 +64,7 @@ def ext_dist_sim(A, B):
     Bx1, By1, Bx2, By2 = B
 
     Acx, Acy = Ax1+((Ax2-Ax1)/2), Ay1 + ((Ay2- Ay1)/2)
-    Bcx, Bcy = (Bx1+((Bx2-Bx1)/2)), (By1 + ((By2- By1)/2))
+    Bcx, Bcy = Bx1+((Bx2-Bx1)/2), By1 + ((By2- By1)/2)
     p = Acx - Bcx
     q = Acy - Bcy
     dist = math.sqrt((p**2) + (q**2))
