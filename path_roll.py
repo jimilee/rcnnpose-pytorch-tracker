@@ -26,11 +26,11 @@ if DATA_PATH is None:
 if OUTPUT_PATH is None:
     OUTPUT_PATH = osp.join(PROJECT_PATH, 'output')
 
-SC1 = 0.6 # geometric score
-SC2 = 0.4 # simsiam score
+SC1 = 0.5 # geometric score
+SC2 = 0.5 # simsiam score
 
 detTH = 0.6
-ovlTH = 0.4
+ovlTH = 0.5
 updateTH = 0.5
 ageTH = 20
 

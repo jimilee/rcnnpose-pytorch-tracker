@@ -14,7 +14,7 @@ from examples.tracker_utils import print_tracking_result, save_crop_bbox_img
 from rcnnpose.utils import draw_tracker_boxes
 
 def beepsound():
-    fr = 1500    # range : 37 ~ 32767
+    fr = 800    # range : 37 ~ 32767
     du = 1000     # 1000 ms ==1second
     sd.Beep(fr, du) # winsound.Beep(frequency, duration)
 
