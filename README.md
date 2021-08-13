@@ -30,4 +30,4 @@ python tracker_demo.py
 <br />
 <br />
 
-**Made with** :heart: **and** :pizza: **and** :rabbit:
+**Made with** :heart: **and** :rabbit:
