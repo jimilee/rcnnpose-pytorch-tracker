@@ -12,22 +12,27 @@ import numpy as np
 from examples.tracker import tracker
 from examples.tracker_utils import print_tracking_result, save_crop_bbox_img
 from rcnnpose.utils import draw_tracker_boxes
+import openpyxl
+
+#
 
 def beepsound():
-    fr = 800    # range : 37 ~ 32767
-    du = 1000     # 1000 ms ==1second
+    fr = 500    # range : 37 ~ 32767
+    du = 500     # 1000 ms ==1second
     sd.Beep(fr, du) # winsound.Beep(frequency, duration)
 
-def track_all_seq(target_='train'):
+def track_all_seq(target_='test'):
     MOT_DATA = roll.TARGET_DATASET
     st = tracker()
+    proctime = 0
     for dataset in MOT_DATA:
         print(osp.join(roll.DATA_PATH, dataset, target_))
         for seq in os.listdir(osp.join(roll.DATA_PATH, dataset, target_)):
+
             T_seq = seq[6:8]
             st.init_id_tracker(st.max_tracker, T_seq)
             challenge_path = osp.join(roll.CHALLENGE_PATH, seq[9:], '{0}.txt'.format(seq))
-            file_target = os.path.join(osp.join(roll.PREDATA_PATH, seq + '_det.txt'))
+            file_target = os.path.join(osp.join(roll.PREDATA_PATH, seq + '.txt'))
             #file_target = os.path.join(osp.join(roll.PREDATA_PATH, seq, 'gt', 'gt.txt'))
             img_target = osp.join(roll.DATA_PATH, dataset, target_, seq, seq)  # MOT17
 
@@ -60,6 +65,8 @@ def track_all_seq(target_='train'):
             dq = deque(bbox)
             frame_cnt = 0
             idx = 0
+
+
             for img in tqdm(os.listdir(img_target)):
                 frame_cnt = frame_cnt + 1
                 src = cv2.imread(osp.join(img_target, img))
@@ -82,9 +89,10 @@ def track_all_seq(target_='train'):
                         break
                 # print(type(np.array(det_boxes)))
                 # save_crop_bbox_img(src, np.array(gt_boxes), frame_cnt, seq)
-
+                start = time.time()
                 target = st.tracking(np.array(det_boxes), src, frame_cnt)
-
+                end = time.time()
+                proctime += end-start
                 # 트래킹오버레이 확인용 화면 출력.
                 # overlay_tk = draw_tracker_boxes(src, target, frame_cnt)
                 # cv2.imshow('Video Demo', overlay_tk)
@@ -92,11 +100,19 @@ def track_all_seq(target_='train'):
                 #     break
 
                 print_tracking_result(target, challenge_path, frame_cnt)
+    print(proctime)
+    return proctime
 
-start = time.time()
-track_all_seq()
-end = time.time()
-print("done. total process time : {0}, FPS : {1}".format(end - start, float(1/((end-start)/5316)))) #5316 is total frame of MOT train-set
+tracking_time = track_all_seq()
+
+print("done. total process time : {0}, FPS : {1}".format(tracking_time, float(1/(tracking_time/5316)))) #5316 is total frame of MOT train-set
+# exel_path = 'C:/Users/CVPR_JIMILEE/Desktop/motchallenge-devkit/result.xlsx'
+# wb = openpyxl.load_workbook(exel_path)
+# sheet = wb.active
+# sheet.append({'A':'IDF1','B':'MOTA','C':roll.CKPT,'D':roll.SC1,'E':roll.SC2,'F':roll.detTH,'G':roll.ovlTH,'H':roll.updateTH,'I':roll.ageTH,'J':roll.hierarchy})
+#
+# wb.save(exel_path)
+# print("exel result saved. {0}".format(exel_path))
 
 beepsound()
     # print(times)

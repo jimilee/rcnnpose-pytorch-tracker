@@ -1,4 +1,5 @@
 import torch
+import path_roll as roll
 import torch.nn.functional as F
 from simsiam.models import SimSiam
 
@@ -7,11 +8,11 @@ from simsiam.models import SimSiam
 #
 # ass_mat = get_association_matrix(model.backbone, trackers, detections, k=min(len(trackers), 5))
 # print(ass_mat.keys())
-
+#'E:/_workspace/rcnnpose-pytorch-tracker/simsiam/ckpt/MOT Aug( w cutout, jitter0.2)+Market C-Pose-GAN Aug (w cutout.pt'
 class SimsiamSA():
     def __init__(self):
         self.model = SimSiam().cuda()
-        self.model.load_state_dict(torch.load('E:/_workspace/rcnnpose-pytorch-tracker/simsiam/ckpt/MOT Aug( w cutout, jitter0.2)+Market C-Pose-GAN Aug (w cutout.pt'))
+        self.model.load_state_dict(torch.load(roll.SIMSIAM_PATH))
         self.model.eval()
 
     def backbone(self):

@@ -27,6 +27,7 @@ class tracker():
 
     def init_id_tracker(self, max_tracker, T_seq):
         self.T1, self.T2, self.T3 = roll.T[T_seq]
+        self.last_id = 0
         for i in range(0, max_tracker):
             color = []
             for c in range(3): color.append(random.randrange(0, 256))
@@ -88,19 +89,18 @@ class tracker():
         if update and t_id is not None:
             rgb = self.trackers[t_id]['rgb']
             tracker_atan = atan2(target_['box'], self.trackers[t_id]['box'])
+            tracker_bbox = target_['box']
             if not self.occluded_tracker(target_['box'], ovl_th=roll.ovlTH, t_id = t_id):
                 tracker_feat = target_['feat']
                 tracker_hist = target_['hist']
                 #tracker_bbox = centroid_box(target_['box'], self.trackers[t_id]['box'])
-                tracker_bbox = target_['box']
-                trk_occ = True
+                trk_occ = False
 
             else:
                 tracker_feat = self.trackers[t_id]['feat']
                 tracker_hist = self.trackers[t_id]['hist']
                 #tracker_bbox = centroid_box(target_['box'], self.trackers[t_id]['box'])
-                tracker_bbox = target_['box']
-                trk_occ = False
+                trk_occ = True
                 # print('트래커 업데이트 id :{0}, frame : {1}, cur_frame: {2}'.format(self.trackers[t_id]['id'],
             #                                                            self.trackers[t_id]['frame'], target_['frame']))
             self.trackers[t_id] = {'id': t_id, 'frame': target_['frame'], 'stat': True,
@@ -222,10 +222,21 @@ class tracker():
             x1, y1 = det[:2]
             x2, y2 = det[2:]
 
+            if x1 < 0: x1 = 0
+            if y1 < 0: y1 = 0
+            if x1 > src.shape[1]: x1 = src.shape[1]-1
+            if y1 > src.shape[0]: y1 = src.shape[0]-1
+
+            if x2 < 0: x2 = 0
+            if y2 < 0: y2 = 0
+            if x2 > src.shape[1]: x2 = src.shape[1]-1
+            if y2 > src.shape[0]: y2 = src.shape[0]-1
+
             #if (x2-x1) < 30 or (y2-y1) < 30:
             #    continue
             # feat = src.crop((max(x1, 0), max(y1, 0), min(x2, src.size[0]), min(y2, src.size[1])))
             feat = src[y1:y2, x1:x2]
+            print(x1, y1, x2, y2)
             roi_hsv = cv2.cvtColor(feat, cv2.COLOR_BGR2HSV)
             tensor_src = convert_img_tensor(feat)
 
