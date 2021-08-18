@@ -1,6 +1,6 @@
 
 # RCNNPose PyTorch + Tracker
-**Mask R-CNN and Keypoint R-CNN wrapper for pose estimation with PyTorch.**
+**Mask R-CNN and Keypoint R-CNN wrapper + BYOL and SimSiam wrapper for Multiple Object Tracking with PyTorch.**
 
 ## Installation
 #### Prerequisites
@@ -26,8 +26,8 @@ python tracker_demo.py
 
 ## License
 * [RCNNPose PyTorch License](https://github.com/prasunroy/rcnnpose-pytorch/blob/master/LICENSE)
-
+* [Barlowtwins License](https://github.com/facebookresearch/barlowtwins/blob/main/LICENSE)
 <br />
 <br />
 
-**Made with** :heart: **and** :pizza: **and** :rabbit:
+**Made with** :heart: **and** :rabbit:
