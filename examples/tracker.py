@@ -21,7 +21,7 @@ class tracker():
         self.simsiam = SimsiamSA()
         self.trackers = {}
         self.online_trk = []
-        self.last_id, self.max_tracker=0,50
+        self.last_id, self.max_tracker=0,70
         self.minmax_scaler = MinMaxScaler()
         self.stand_scaler = StandardScaler()
 
@@ -231,12 +231,15 @@ class tracker():
             if y2 < 0: y2 = 0
             if x2 > src.shape[1]: x2 = src.shape[1]-1
             if y2 > src.shape[0]: y2 = src.shape[0]-1
+            if x1 == x2: continue
+            elif y1 == y2: continue
+
+            det = np.array([x1,y1,x2,y2], dtype=int)
 
             #if (x2-x1) < 30 or (y2-y1) < 30:
             #    continue
             # feat = src.crop((max(x1, 0), max(y1, 0), min(x2, src.size[0]), min(y2, src.size[1])))
             feat = src[y1:y2, x1:x2]
-            print(x1, y1, x2, y2)
             roi_hsv = cv2.cvtColor(feat, cv2.COLOR_BGR2HSV)
             tensor_src = convert_img_tensor(feat)
 

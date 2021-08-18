@@ -33,7 +33,7 @@ SC1 = 0.6 # geometric score
 SC2 = 0.4 # simsiam score
 
 #detTH = 0.6 # MOT16
-detTH = 0.0
+detTH = -5
 ovlTH = 0.5
 updateTH = 0.5
 ageTH = 20

@@ -21,7 +21,7 @@ def beepsound():
     du = 500     # 1000 ms ==1second
     sd.Beep(fr, du) # winsound.Beep(frequency, duration)
 
-def track_all_seq(target_='test'):
+def track_all_seq(target_='train'):
     MOT_DATA = roll.TARGET_DATASET
     st = tracker()
     proctime = 0
@@ -93,7 +93,7 @@ def track_all_seq(target_='test'):
                 target = st.tracking(np.array(det_boxes), src, frame_cnt)
                 end = time.time()
                 proctime += end-start
-                # 트래킹오버레이 확인용 화면 출력.
+                # # 트래킹오버레이 확인용 화면 출력.
                 # overlay_tk = draw_tracker_boxes(src, target, frame_cnt)
                 # cv2.imshow('Video Demo', overlay_tk)
                 # if cv2.waitKey(20) & 0xff == 27:  # exit if pressed `ESC`
