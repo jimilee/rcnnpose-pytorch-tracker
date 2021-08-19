@@ -59,6 +59,20 @@ def ext_atan2_sim(A, B, atan):
     #print(result, atan, 'atan result. : ', abs(result - atan))
     return abs(result - atan)
 
+def get_center_pt(A):
+    Ax1, Ay1, Ax2, Ay2 = A
+    Acx, Acy = Ax1+((Ax2-Ax1)/2), Ay1 + ((Ay2- Ay1)/2)
+    return np.array([[Acx], [Acy]])
+
+def center_pt_2_bbox(A, cx, cy):
+    Ax1, Ay1, Ax2, Ay2 = A
+    w, h = (Ax2-Ax1),(Ay2-Ay1)
+    w = w/2
+    h = h/2
+    cx = cx.getA1()[0]
+    cy = cy.getA1()[0]
+    return np.array([cx-w, cy-h, cx+w, cy+h], dtype=int)
+
 def ext_dist_sim(A, B):
     Ax1, Ay1, Ax2, Ay2 = A
     Bx1, By1, Bx2, By2 = B

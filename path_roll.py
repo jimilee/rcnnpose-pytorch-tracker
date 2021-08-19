@@ -5,7 +5,7 @@ import pathlib
 ########################################################################################
 # Specification of paths where dataset and output results will be stored
 ########################################################################################
-TARGET_DATASET = {'MOT17'}
+TARGET_DATASET = {'MOT16'}
 
 CHALLENGE_PATH = 'C:/Users/CVPR_JIMILEE/Desktop/motchallenge-devkit/res/MOT16/data/'
 
@@ -14,7 +14,8 @@ SIMSIAM_PATH = 'E:/_workspace/rcnnpose-pytorch-tracker/simsiam/ckpt/'+CKPT
 
 PROJECT_PATH = pathlib.Path(__file__).parent.parent.parent.absolute()
 
-PREDATA_PATH = osp.join(PROJECT_PATH, 'MOT17_dets')#det
+# PREDATA_PATH = osp.join(PROJECT_PATH, 'MOT17_dets')#det
+PREDATA_PATH = osp.join(PROJECT_PATH, 'MOT16_dets')#det
 #PREDATA_PATH = osp.join(PROJECT_PATH, 'MOT20', 'train')#gt
 
 # Absolute path where datasets and processed data (e.g. precomputed embeddings) will be stored
@@ -56,18 +57,18 @@ hierarchy = 0.5
 #      '12':[0.0, 0.3, 0.7], #11
 #      '14':[0.0, 0.3, 0.7]} #13
 
-T = {'02':[0.0, 0.5, 0.5], ##train
-     '04':[0.0, 0.5, 0.5], ## fix
-     '05':[0.0, 0.4, 0.6], ## fix
-     '09':[0.1, 0.1, 0.8], ##
-     '10':[0.0, 0.0, 1.0], ## fix
-     '11':[0.0, 0.4, 0.6], ##
-     '13':[0.0, 0.3, 0.7], ##
+T = {'02':[0, 0.5, 0.5], ##train static
+     '04':[0, 0.5, 0.5], ## fix static
+     '05':[-1, 0.4, 0.6], ## fix moving
+     '09':[0, 0.2, 0.8], ## static
+     '10':[-1, 0.0, 1.0], ## fix moving
+     '11':[-1, 0.4, 0.6], ## moving
+     '13':[-1, 0.3, 0.7], ## moving
 
-     '01':[0.0, 0.5, 0.5], #2
-     '03':[0.0, 0.5, 0.5], #4
-     '06':[0.0, 0.4, 0.6], #5
-     '07':[0.0, 0.0, 1.0], #10
-     '08':[0.0, 0.4, 0.6], #11
-     '12':[0.0, 0.4, 0.6], #11
-     '14':[0.0, 0.3, 0.7]} #13
+     '01':[0, 0.5, 0.5], #2 static
+     '03':[0, 0.5, 0.5], #4 static
+     '06':[-1, 0.4, 0.6], #5 moving
+     '07':[-1, 0.0, 1.0], #10 moving
+     '08':[0, 0.4, 0.6], #11 static
+     '12':[-1, 0.4, 0.6], #11 moving
+     '14':[-1, 0.3, 0.7]} #13 moving

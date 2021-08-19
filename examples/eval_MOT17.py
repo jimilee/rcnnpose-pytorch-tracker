@@ -21,7 +21,7 @@ def beepsound():
     du = 500     # 1000 ms ==1second
     sd.Beep(fr, du) # winsound.Beep(frequency, duration)
 
-def track_all_seq(target_='train'):
+def track_all_seq(target_='train', show = False):
     MOT_DATA = roll.TARGET_DATASET
     st = tracker()
     proctime = 0
@@ -57,9 +57,9 @@ def track_all_seq(target_='train'):
                     frame, id1, x, y, w, h, score, n1, n2, n3 = line.split(sep=',')
                     #frame, id1, x, y, w, h, score, cls, vis = line.split(sep=',') #gt
                     #if int(cls) == 1 and float(vis) > 0.4 :  # gt.
-                    if float(score) > roll.detTH:
+                    #if float(score) > roll.detTH:
                         # print(frame, id1, x, y, w, h, score, cls, vis)
-                        bbox.append((frame, id1, x, y, w, h, score))
+                    bbox.append((frame, id1, x, y, w, h, score))
 
             bbox = sorted(bbox, key=lambda x: int(x[0]))  # 프레임순 정렬.
             dq = deque(bbox)
@@ -94,10 +94,11 @@ def track_all_seq(target_='train'):
                 end = time.time()
                 proctime += end-start
                 # # 트래킹오버레이 확인용 화면 출력.
-                # overlay_tk = draw_tracker_boxes(src, target, frame_cnt)
-                # cv2.imshow('Video Demo', overlay_tk)
-                # if cv2.waitKey(20) & 0xff == 27:  # exit if pressed `ESC`
-                #     break
+                if(show):
+                    overlay_tk = draw_tracker_boxes(src, target, frame_cnt)
+                    cv2.imshow('Video Demo', overlay_tk)
+                    if cv2.waitKey(20) & 0xff == 27:  # exit if pressed `ESC`
+                        break
 
                 print_tracking_result(target, challenge_path, frame_cnt)
     print(proctime)

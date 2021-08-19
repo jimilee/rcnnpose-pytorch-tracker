@@ -7,11 +7,12 @@ import random, math, time, sys
 import path_roll as roll
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from tracker_utils import cal_histogram, cos_sim, euclid_sim, ext_ovl_sim, print_tracking_result, centroid_box, \
-    convert_img_tensor, ext_dist_sim, ext_atan2_sim, atan2
+    convert_img_tensor, ext_dist_sim, ext_atan2_sim, atan2, get_center_pt, center_pt_2_bbox
 from scipy.optimize import linear_sum_assignment
 from torchvision import transforms
 from PIL import Image
 from simsiam.simsiam_standalone import SimsiamSA
+from KalmanFilter import KalmanFilter
 
 np.set_printoptions(formatter={'float_kind': lambda x: "{0:0.3f}".format(x)})
 challenge_path = 'MOT16-11.txt'
@@ -31,14 +32,16 @@ class tracker():
         for i in range(0, max_tracker):
             color = []
             for c in range(3): color.append(random.randrange(0, 256))
+            KF = KalmanFilter(0.1, 1, 1, 1, 0.1,0.1)
             self.trackers[i] = {'id': i,
                                 'stat': False,
                                 'feat': 0,
                                 'frame': 0,
                                 'hist': 0,
-                                'atan': 0,
+                                #'atan': 0,
                                 'rgb': color,
-                                'occ': False}
+                                'occ': False,
+                                'KF': KF}
 
 
     def bbox_sim_score(self, target):
@@ -46,7 +49,6 @@ class tracker():
         target_trk = self.online_trk
         len_trk = len(target_trk)
         dist_score = np.ones(shape=(len_trk,), dtype=np.float32)
-        eu_result = np.ones(shape=(len_trk,), dtype=np.float32)
         euclid_score = np.ones(shape=(len_trk,), dtype=np.float32)
         degree_score = np.ones(shape=(len_trk,), dtype=np.float32)
 
@@ -54,20 +56,20 @@ class tracker():
             # print(target)
             dist.append(ext_dist_sim(target['box'], trk['box']))
             euclid.append(euclid_sim(target['hist'], trk['hist']))
-            degree.append(ext_atan2_sim(target['box'], trk['box'], trk['atan']))
+            #degree.append(ext_atan2_sim(target['box'], trk['box'], trk['atan']))
 
         if (len(dist) > 0):
             dist = np.array(dist).reshape(len_trk, 1)
             euclid = np.array(euclid).reshape(len_trk, 1)
-            degree = np.array(degree).reshape(len_trk, 1)
+            #degree = np.array(degree).reshape(len_trk, 1)
 
             self.minmax_scaler.fit(euclid)
             euclid_score = self.minmax_scaler.transform(euclid)
             euclid_score = 1 - euclid_score
 
-            self.minmax_scaler.fit(degree)
-            degree_score = self.minmax_scaler.transform(degree)
-            degree_score = 1 - degree_score
+            #self.minmax_scaler.fit(degree)
+            #degree_score = self.minmax_scaler.transform(degree)
+            #degree_score = 1 - degree_score
 
         for j, trk in enumerate(target_trk):
             dist_score[j] = (1 - dist[j])
@@ -88,18 +90,31 @@ class tracker():
         # update tracker
         if update and t_id is not None:
             rgb = self.trackers[t_id]['rgb']
-            tracker_atan = atan2(target_['box'], self.trackers[t_id]['box'])
-            tracker_bbox = target_['box']
+            #tracker_atan = atan2(target_['box'], self.trackers[t_id]['box'])
+
+            tracker_KF = self.trackers[t_id]['KF']
+            tracker_cp = get_center_pt(self.trackers[t_id]['box'])
+            target_cp = get_center_pt(target_['box'])
             if not self.occluded_tracker(target_['box'], ovl_th=roll.ovlTH, t_id = t_id):
                 tracker_feat = target_['feat']
                 tracker_hist = target_['hist']
                 #tracker_bbox = centroid_box(target_['box'], self.trackers[t_id]['box'])
+                (x, y) = tracker_KF.predict()
+                (x1, y1) = tracker_KF.update(target_cp)
+                tracker_bbox = target_['box']
                 trk_occ = False
 
             else:
                 tracker_feat = self.trackers[t_id]['feat']
                 tracker_hist = self.trackers[t_id]['hist']
                 #tracker_bbox = centroid_box(target_['box'], self.trackers[t_id]['box'])
+                #tracker_bbox = target_['box']
+                (x, y) = tracker_KF.predict()
+                (x1, y1) = tracker_KF.update(tracker_cp)
+                if not self.T1 == -1: #static
+                    tracker_bbox = center_pt_2_bbox(self.trackers[t_id]['box'],x,y)
+                else:
+                    tracker_bbox = self.trackers[t_id]['box']
                 trk_occ = True
                 # print('트래커 업데이트 id :{0}, frame : {1}, cur_frame: {2}'.format(self.trackers[t_id]['id'],
             #                                                            self.trackers[t_id]['frame'], target_['frame']))
@@ -108,8 +123,9 @@ class tracker():
                                    'hist': tracker_hist,
                                    'feat': tracker_feat,
                                    'rgb': rgb,
-                                   'atan': tracker_atan,
-                                   'occ' : trk_occ}
+                                   #'atan': tracker_atan,
+                                   'occ' : trk_occ,
+                                   'KF' : tracker_KF}
         # generate tracker
         # if d_id != -1:
         #     self.id_table[d_id]['stat'] = False
@@ -118,14 +134,18 @@ class tracker():
                 rgb = self.trackers[id]['rgb']
                 if self.trackers[id]['stat'] is False and id > self.last_id:#
                     self.last_id = id
-
+                    tracker_KF = self.trackers[id]['KF']
+                    tracker_cp = get_center_pt(target_['box'])
+                    (x, y) = tracker_KF.predict()
+                    (x1, y1) = tracker_KF.update(tracker_cp)
                     self.trackers[id] = {'id': id, 'frame': target_['frame'], 'stat': True, # id 할당되면 true.
                                          'box': target_['box'],
                                          'hist': target_['hist'],
                                          'feat': target_['feat'],
                                          'rgb': rgb,
                                          'occ': False,
-                                         'atan': -1}
+                                         #'atan': -1,
+                                         'KF':tracker_KF}
 
                     # print(id, '트래커 할당.', self.trackers[id])
                     return int(id)
@@ -155,7 +175,7 @@ class tracker():
                 #if iou > 0.8: continue #매칭 될 타겟으로 간주.
                 ovl_score = iou
 
-                if ovl_score > ovl_th and (Ay2 - Ay1) < (By2 - By1): #
+                if ovl_score > ovl_th and ((Ay2 - Ay1) < (By2 - By1) or Ay2 < By2): #
                     return True #많이 겹치면 True
 
         return False
