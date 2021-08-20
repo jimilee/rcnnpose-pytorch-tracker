@@ -19,7 +19,7 @@ challenge_path = 'MOT16-11.txt'
 class tracker():
     def __init__(self):
         print('init...')
-        self.simsiam = SimsiamSA()
+        self.model = SimsiamSA()
         self.trackers = {}
         self.online_trk = []
         self.last_id, self.max_tracker=0,70
@@ -194,9 +194,11 @@ class tracker():
         if (len_trk > 0):
             trackers = torch.cat(target_trk, dim=0).cuda(non_blocking=True)
             detectors = torch.cat([feat['feat'].unsqueeze(0) for feat in data_dets], dim=0).cuda(non_blocking=True)
+            # trackers = torch.cat(target_trk, dim=0)
+            # detectors = torch.cat([feat['feat'].unsqueeze(0) for feat in data_dets], dim=0)
             # print(trackers.shape, detectors.shape)
-            ass_mat = self.simsiam.get_association_matrix(self.simsiam.backbone(), trackers,
-                                                          detectors, k=len_trk)
+            ass_mat = self.model.get_association_matrix(self.model.backbone(), trackers,
+                                                        detectors, k=len_trk)
 
             indicies = ass_mat['indicies']
             scores = ass_mat['scores']
@@ -211,7 +213,9 @@ class tracker():
                     y = np.array(x)[:, 1]
                     y -= y.min()  # bring the lower range to 0
                     y /= y.max()  # bring the upper range to 1
-                    x = torch.stack([ind.squeeze().float(), torch.Tensor(y).cuda()],
+                    # x = torch.stack([ind.squeeze().float(), torch.Tensor(y).cuda()],
+                    #                 dim=1).tolist()
+                    x = torch.stack([ind.squeeze().float(), torch.Tensor(y)],
                                     dim=1).tolist()
                     for i, score in x:
                         simsiam_score[int(i)] = score
@@ -285,7 +289,7 @@ class tracker():
             for j, trk in enumerate(self.online_trk):
                 # try:
                 #if dist_score[j] > 0.6 :
-                score_matrix[i][trk['id']] = 1 - ((degree_score[j] * self.T1) + (dist_score[j] * self.T2) + (euclid_score[j] * self.T3))
+                score_matrix[i][trk['id']] = 1 - ((dist_score[j] * self.T2) + (euclid_score[j] * self.T3))
 
                 # except:
                 #     print(j,i ,'is passed.')

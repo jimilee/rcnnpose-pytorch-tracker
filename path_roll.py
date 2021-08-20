@@ -9,7 +9,8 @@ TARGET_DATASET = {'MOT16'}
 
 CHALLENGE_PATH = 'C:/Users/CVPR_JIMILEE/Desktop/motchallenge-devkit/res/MOT16/data/'
 
-CKPT = 'MOT Aug( w cutout, jitter0.2)+Market C-Pose-GAN Aug (w cutout.pt'
+#CKPT = 'MOT Aug( w cutout, jitter0.2)+Market C-Pose-GAN Aug (w cutout.pt'
+CKPT = 'table3_btwins.pt'
 SIMSIAM_PATH = 'E:/_workspace/rcnnpose-pytorch-tracker/simsiam/ckpt/'+CKPT
 
 PROJECT_PATH = pathlib.Path(__file__).parent.parent.parent.absolute()
@@ -30,11 +31,10 @@ if DATA_PATH is None:
 if OUTPUT_PATH is None:
     OUTPUT_PATH = osp.join(PROJECT_PATH, 'output')
 
-SC1 = 0.6 # geometric score
-SC2 = 0.4 # simsiam score
+SC1 = 0.0 # geometric score
+SC2 = 1.0 # simsiam score
 
-#detTH = 0.6 # MOT16
-detTH = -5
+detTH = 0.6 # MOT16
 ovlTH = 0.5
 updateTH = 0.5
 ageTH = 20

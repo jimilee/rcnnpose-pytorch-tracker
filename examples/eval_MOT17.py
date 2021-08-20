@@ -13,9 +13,7 @@ from examples.tracker import tracker
 from examples.tracker_utils import print_tracking_result, save_crop_bbox_img
 from rcnnpose.utils import draw_tracker_boxes
 import openpyxl
-
 #
-
 def beepsound():
     fr = 500    # range : 37 ~ 32767
     du = 500     # 1000 ms ==1second
@@ -23,6 +21,7 @@ def beepsound():
 
 def track_all_seq(target_='train', show = False):
     MOT_DATA = roll.TARGET_DATASET
+
     st = tracker()
     proctime = 0
     for dataset in MOT_DATA:
@@ -101,12 +100,18 @@ def track_all_seq(target_='train', show = False):
                         break
 
                 print_tracking_result(target, challenge_path, frame_cnt)
-    print(proctime)
+    print('total proctime : ',proctime)
     return proctime
 
-tracking_time = track_all_seq()
+target_seq = 'train'
+total_frame = 0
+tracking_time = track_all_seq(target_ = target_seq)
+if roll.TARGET_DATASET == {'MOT16'}:
+    total_frame = 5316 if target_seq == 'train' else 5919
+if roll.TARGET_DATASET == {'MOT17'}:
+    total_frame = 15948 if target_seq == 'train' else 17757
 
-print("done. total process time : {0}, FPS : {1}".format(tracking_time, float(1/(tracking_time/5316)))) #5316 is total frame of MOT train-set
+print("done. total process time : {0}, FPS : {1}".format(tracking_time, float(1/(tracking_time/total_frame)))) #5316 is total frame of MOT train-set
 # exel_path = 'C:/Users/CVPR_JIMILEE/Desktop/motchallenge-devkit/result.xlsx'
 # wb = openpyxl.load_workbook(exel_path)
 # sheet = wb.active

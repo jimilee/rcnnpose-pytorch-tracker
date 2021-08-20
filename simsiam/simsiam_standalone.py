@@ -2,6 +2,8 @@ import torch
 import path_roll as roll
 import torch.nn.functional as F
 from simsiam.models import SimSiam
+from simsiam.models import BarlowTwins
+from simsiam.models import BYOL
 
 # trackers = torch.rand([10, 3, 224, 112]).cuda(non_blocking=True)  # RGB, 0~1
 # detections = torch.rand([8, 3, 224, 112]).cuda(non_blocking=True)
@@ -14,6 +16,19 @@ class SimsiamSA():
         self.model = SimSiam().cuda()
         self.model.load_state_dict(torch.load(roll.SIMSIAM_PATH))
         self.model.eval()
+
+        # 테스트 BTwins
+        # self.model = BarlowTwins('8192-8192-8192')
+        # self.model.load_state_dict(torch.load('E:/_workspace/rcnnpose-pytorch-tracker/simsiam/ckpt/table3_btwins.pt'))
+        # self.model.backbone  # 2048
+
+        # 테스트 BYOL
+        # self.model = BYOL(hidden_layer="avgpool")
+        # self.model.load_state_dict(torch.load('E:/_workspace/rcnnpose-pytorch-tracker/simsiam/ckpt/table3_byol.pt'))
+        # self.model.online_encoder  # 256
+
+    def online_encoder(self):
+        return self.model.online_encoder
 
     def backbone(self):
         return self.model.backbone
