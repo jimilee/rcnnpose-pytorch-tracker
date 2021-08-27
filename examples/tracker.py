@@ -18,16 +18,25 @@ np.set_printoptions(formatter={'float_kind': lambda x: "{0:0.3f}".format(x)})
 challenge_path = 'MOT16-11.txt'
 class tracker():
     def __init__(self):
-        print('init...')
         self.model = SimsiamSA()
         self.trackers = {}
         self.online_trk = []
-        self.last_id, self.max_tracker=0,70
+        self.last_id, self.max_tracker=0,200
         self.minmax_scaler = MinMaxScaler()
         self.stand_scaler = StandardScaler()
 
-    def init_id_tracker(self, max_tracker, T_seq):
-        self.T1, self.T2, self.T3 = roll.T[T_seq]
+    def init_id_tracker(self, max_tracker, test_idx):
+        print('init...')
+        self.SC1 = roll.SC1
+        self.SC2 = roll.SC2
+        self.detTH = roll.detTH  # MOT16
+        self.ovlTH = roll.ovlTH
+        self.updateTH = roll.updateTH
+        self.ageTH = roll.ageTH
+        self.hierarchy = roll.hierarchy
+
+        self.T1, self.T2, self.T3 = roll.T[test_idx]
+        self.Kalman = roll.Kalman
         self.last_id = 0
         for i in range(0, max_tracker):
             color = []
@@ -38,7 +47,6 @@ class tracker():
                                 'feat': 0,
                                 'frame': 0,
                                 'hist': 0,
-                                #'atan': 0,
                                 'rgb': color,
                                 'occ': False,
                                 'KF': KF}
@@ -95,7 +103,7 @@ class tracker():
             tracker_KF = self.trackers[t_id]['KF']
             tracker_cp = get_center_pt(self.trackers[t_id]['box'])
             target_cp = get_center_pt(target_['box'])
-            if not self.occluded_tracker(target_['box'], ovl_th=roll.ovlTH, t_id = t_id):
+            if not self.occluded_tracker(target_['box'], ovl_th=self.ovlTH, t_id = t_id):
                 tracker_feat = target_['feat']
                 tracker_hist = target_['hist']
                 #tracker_bbox = centroid_box(target_['box'], self.trackers[t_id]['box'])
@@ -111,7 +119,7 @@ class tracker():
                 #tracker_bbox = target_['box']
                 (x, y) = tracker_KF.predict()
                 (x1, y1) = tracker_KF.update(tracker_cp)
-                if not self.T1 == -1: #static
+                if self.Kalman: #static
                     tracker_bbox = center_pt_2_bbox(self.trackers[t_id]['box'],x,y)
                 else:
                     tracker_bbox = self.trackers[t_id]['box']
@@ -213,17 +221,17 @@ class tracker():
                     y = np.array(x)[:, 1]
                     y -= y.min()  # bring the lower range to 0
                     y /= y.max()  # bring the upper range to 1
-                    # x = torch.stack([ind.squeeze().float(), torch.Tensor(y).cuda()],
-                    #                 dim=1).tolist()
-                    x = torch.stack([ind.squeeze().float(), torch.Tensor(y)],
+                    x = torch.stack([ind.squeeze().float(), torch.Tensor(y).cuda()],
                                     dim=1).tolist()
+                    # x = torch.stack([ind.squeeze().float(), torch.Tensor(y)],
+                    #                 dim=1).tolist()
                     for i, score in x:
                         simsiam_score[int(i)] = score
                 simscore.append(simsiam_score)
             for i, sim in enumerate(simscore): #i는 디텍션
                 for j, trk in enumerate(self.online_trk):
-                    if score_matrix[i][trk['id']] < roll.hierarchy:
-                        score_matrix[i][trk['id']] = 1 - (((1 - score_matrix[i][trk['id']])* roll.SC1) + (sim[j] * roll.SC2))
+                    if score_matrix[i][trk['id']] < self.hierarchy:
+                        score_matrix[i][trk['id']] = 1 - (((1 - score_matrix[i][trk['id']])* self.SC1) + (sim[j] * self.SC2))
                     else:
                         score_matrix[i][trk['id']] = 10.0
                         # score_matrix[i][trk['id']] = 1 - sim[j]
@@ -253,13 +261,12 @@ class tracker():
 
             if x2 < 0: x2 = 0
             if y2 < 0: y2 = 0
-            if x2 > src.shape[1]: x2 = src.shape[1]-1
-            if y2 > src.shape[0]: y2 = src.shape[0]-1
-            if x1 == x2: continue
-            elif y1 == y2: continue
+            if x2 > src.shape[1]: x2 = src.shape[1]
+            if y2 > src.shape[0]: y2 = src.shape[0]
+            if x2 - x1 <= 2: continue
+            elif y2 - y1 <= 2: continue
 
             det = np.array([x1,y1,x2,y2], dtype=int)
-
             #if (x2-x1) < 30 or (y2-y1) < 30:
             #    continue
             # feat = src.crop((max(x1, 0), max(y1, 0), min(x2, src.size[0]), min(y2, src.size[1])))
@@ -313,7 +320,7 @@ class tracker():
         # id -> idx 로 저장해야됨.
         for idx, id in enumerate(hungarian_result):  # id_update.
             if idx < len(target_det) and id < self.max_tracker:
-                if self.trackers[id]['stat'] == True and score_matrix[idx][id] < roll.updateTH:  # and score_matrix[idx][id] < 0.5  self.trackers[id]['frame'] >= frame_cnt-1
+                if self.trackers[id]['stat'] == True and score_matrix[idx][id] < self.updateTH:  # and score_matrix[idx][id] < 0.5  self.trackers[id]['frame'] >= frame_cnt-1
                     # print('업데이트 타겟. id : {0} -> idx: {1}'.format(self.trackers[id]['id'], idx))
                     self.tracker_provider(target_=target_det[idx],
                                           t_id=self.trackers[id]['id'], update=True) # 트래커 업데이트

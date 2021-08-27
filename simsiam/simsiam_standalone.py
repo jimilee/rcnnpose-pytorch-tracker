@@ -17,12 +17,12 @@ class SimsiamSA():
         self.model.load_state_dict(torch.load(roll.SIMSIAM_PATH))
         self.model.eval()
 
-        # 테스트 BTwins
+        # # 테스트 BTwins
         # self.model = BarlowTwins('8192-8192-8192')
         # self.model.load_state_dict(torch.load('E:/_workspace/rcnnpose-pytorch-tracker/simsiam/ckpt/table3_btwins.pt'))
         # self.model.backbone  # 2048
 
-        # 테스트 BYOL
+        # # 테스트 BYOL
         # self.model = BYOL(hidden_layer="avgpool")
         # self.model.load_state_dict(torch.load('E:/_workspace/rcnnpose-pytorch-tracker/simsiam/ckpt/table3_byol.pt'))
         # self.model.online_encoder  # 256
