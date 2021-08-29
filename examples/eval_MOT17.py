@@ -30,8 +30,6 @@ def track_all_seq(target_='train', show = False):
     for dataset in MOT_DATA:
         print(osp.join(roll.DATA_PATH, dataset, target_))
         for seq in os.listdir(osp.join(roll.DATA_PATH, dataset, target_)):
-
-
             file_target = os.path.join(osp.join(roll.PREDATA_PATH, seq + '.txt'))
             #file_target = os.path.join(osp.join(roll.PREDATA_PATH, seq, 'gt', 'gt.txt'))
             img_target = osp.join(roll.DATA_PATH, dataset, target_, seq, seq)
@@ -44,11 +42,12 @@ def track_all_seq(target_='train', show = False):
                 os.makedirs(osp.join(roll.CHALLENGE_PATH, seq[9:]))
 
             for test_idx in TEST_ROLL:
+
                 challenge_path = roll.CHALLENGE_PATH + 'data_' + test_idx + '/'
 
                 if not os.path.exists(challenge_path):
                     os.makedirs(challenge_path)
-                challenge_path = osp.join(challenge_path, seq[9:], '{0}.txt'.format(seq))
+                challenge_path = osp.join(challenge_path, '{0}.txt'.format(seq))
 
                 if os.path.isfile(challenge_path):
                     print(challenge_path, 'is exist! make new.')  # 이미 챌린지 출력결과가 있을경우, 해당 파일 삭제.
@@ -114,7 +113,7 @@ def track_all_seq(target_='train', show = False):
     return proctime
 
 
-target_seq = 'train'
+target_seq = 'test'
 total_frame = 0
 tracking_time = track_all_seq(target_ = target_seq, show=False)
 if roll.TARGET_DATASET == {'MOT16'}:
@@ -155,8 +154,8 @@ for test_idx in roll.T.keys():
     MOTA = output_res['MotChallenge2DBox']['SSL_MOT']['COMBINED_SEQ']['pedestrian']['CLEAR']['MOTA']
     IDF1 = output_res['MotChallenge2DBox']['SSL_MOT']['COMBINED_SEQ']['pedestrian']['Identity']['IDF1']
 
-    best_MOTA['test_idx'] = MOTA
-    best_IDF1['test_idx'] = IDF1
+    best_MOTA[test_idx] = MOTA
+    best_IDF1[test_idx] = IDF1
 
 print(best_MOTA)
 print(best_IDF1)

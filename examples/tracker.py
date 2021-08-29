@@ -27,15 +27,18 @@ class tracker():
 
     def init_id_tracker(self, max_tracker, test_idx):
         print('init...')
-        self.SC1 = roll.SC1
-        self.SC2 = roll.SC2
+        self.T1, self.T2, self.T3 = roll.T[test_idx]
+
         self.detTH = roll.detTH  # MOT16
         self.ovlTH = roll.ovlTH
         self.updateTH = roll.updateTH
-        self.ageTH = roll.ageTH
+        self.ageTH = self.T1
         self.hierarchy = roll.hierarchy
 
-        self.T1, self.T2, self.T3 = roll.T[test_idx]
+
+        self.SC1 = self.SC1 #0.4
+        self.SC2 = 1 - self.SC1
+
         self.Kalman = roll.Kalman
         self.last_id = 0
         for i in range(0, max_tracker):
