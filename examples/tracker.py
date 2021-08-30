@@ -36,7 +36,7 @@ class tracker():
         self.hierarchy = roll.hierarchy
 
 
-        self.SC1 = self.SC1 #0.4
+        self.SC1 = roll.SC1 #0.4
         self.SC2 = 1 - self.SC1
 
         self.Kalman = roll.Kalman

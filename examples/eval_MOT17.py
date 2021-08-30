@@ -113,7 +113,7 @@ def track_all_seq(target_='train', show = False):
     return proctime
 
 
-target_seq = 'test'
+target_seq = 'train'
 total_frame = 0
 tracking_time = track_all_seq(target_ = target_seq, show=False)
 if roll.TARGET_DATASET == {'MOT16'}:
