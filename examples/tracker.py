@@ -31,8 +31,8 @@ class tracker():
 
         self.detTH = roll.detTH  # MOT16
         self.ovlTH = roll.ovlTH
-        self.updateTH = roll.updateTH
-        self.ageTH = self.T1
+        self.updateTH = self.T1
+        self.ageTH = roll.ageTH
         self.hierarchy = roll.hierarchy
 
 
@@ -44,7 +44,7 @@ class tracker():
         for i in range(0, max_tracker):
             color = []
             for c in range(3): color.append(random.randrange(0, 256))
-            KF = KalmanFilter(0.1, 1, 1, 1, 0.1,0.1)
+            KF = KalmanFilter(1, 1, 1, 1, 1, 1)
             self.trackers[i] = {'id': i,
                                 'stat': False,
                                 'feat': 0,
@@ -112,7 +112,10 @@ class tracker():
                 #tracker_bbox = centroid_box(target_['box'], self.trackers[t_id]['box'])
                 (x, y) = tracker_KF.predict()
                 (x1, y1) = tracker_KF.update(target_cp)
-                tracker_bbox = target_['box']
+                if self.Kalman:  # static
+                    tracker_bbox = center_pt_2_bbox(self.trackers[t_id]['box'], x, y)
+                else:
+                    tracker_bbox = self.trackers[t_id]['box']
                 trk_occ = False
 
             else:

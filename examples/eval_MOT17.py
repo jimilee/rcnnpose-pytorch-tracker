@@ -50,10 +50,10 @@ def track_all_seq(target_='train', show = False):
                 challenge_path = osp.join(challenge_path, '{0}.txt'.format(seq))
 
                 if os.path.isfile(challenge_path):
-                    print(challenge_path, 'is exist! make new.')  # 이미 챌린지 출력결과가 있을경우, 해당 파일 삭제.
-                    os.remove(challenge_path)
-                    #print(challenge_path, 'is exist! pass this seq.')  # 패스.
-                    #continue
+                    #print(challenge_path, 'is exist! make new.')  # 이미 챌린지 출력결과가 있을경우, 해당 파일 삭제.
+                    #os.remove(challenge_path)
+                    print(challenge_path, 'is exist! pass this seq.')  # 패스.
+                    continue
 
                 print('challenge_path : ',challenge_path)
 
