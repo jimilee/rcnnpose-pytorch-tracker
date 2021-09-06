@@ -21,7 +21,7 @@ class tracker():
         self.model = SimsiamSA()
         self.trackers = {}
         self.online_trk = []
-        self.last_id, self.max_tracker=0,200
+        self.last_id, self.max_tracker=0,1000
         self.minmax_scaler = MinMaxScaler()
         self.stand_scaler = StandardScaler()
 
@@ -31,7 +31,7 @@ class tracker():
 
         self.detTH = roll.detTH  # MOT16
         self.ovlTH = roll.ovlTH
-        self.updateTH = self.T1
+        self.updateTH = roll.updateTH
         self.ageTH = roll.ageTH
         self.hierarchy = roll.hierarchy
 
@@ -44,7 +44,7 @@ class tracker():
         for i in range(0, max_tracker):
             color = []
             for c in range(3): color.append(random.randrange(0, 256))
-            KF = KalmanFilter(1, 1, 1, 1, 1, 1)
+            KF = KalmanFilter(1.0, 1, 1, 1, 1.0,1.0)
             self.trackers[i] = {'id': i,
                                 'stat': False,
                                 'feat': 0,
@@ -112,8 +112,9 @@ class tracker():
                 #tracker_bbox = centroid_box(target_['box'], self.trackers[t_id]['box'])
                 (x, y) = tracker_KF.predict()
                 (x1, y1) = tracker_KF.update(target_cp)
-                if self.Kalman:  # static
-                    tracker_bbox = center_pt_2_bbox(self.trackers[t_id]['box'], x, y)
+                #tracker_bbox = target_['box']
+                if self.Kalman: #static
+                    tracker_bbox = center_pt_2_bbox(target_['box'],x,y)
                 else:
                     tracker_bbox = self.trackers[t_id]['box']
                 trk_occ = False
@@ -124,9 +125,10 @@ class tracker():
                 #tracker_bbox = centroid_box(target_['box'], self.trackers[t_id]['box'])
                 #tracker_bbox = target_['box']
                 (x, y) = tracker_KF.predict()
-                (x1, y1) = tracker_KF.update(tracker_cp)
                 if self.Kalman: #static
-                    tracker_bbox = center_pt_2_bbox(self.trackers[t_id]['box'],x,y)
+                    #tracker_bbox = center_pt_2_bbox(self.trackers[t_id]['box'],x,y)
+                    tracker_bbox = target_['box']
+                    (x1, y1) = tracker_KF.update(get_center_pt(tracker_bbox))
                 else:
                     tracker_bbox = self.trackers[t_id]['box']
                 trk_occ = True
