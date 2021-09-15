@@ -90,7 +90,6 @@ def track_all_seq(target_='train', show = False):
                             by = sy + int(float(bbox[5]))
                             det_boxes.append([sx,sy,bx,by])
                             gt_boxes.append([id,sx,sy,bx,by])
-
                         else:
                             dq.appendleft(bbox)  # 다음 프레임은 다시 넣음
                             break
