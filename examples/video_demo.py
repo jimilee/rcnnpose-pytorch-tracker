@@ -5,7 +5,7 @@ sys.path.append('../')
 import cv2
 import numpy as np
 from rcnnpose.estimator import BodyPoseEstimator
-from rcnnpose.utils import draw_body_connections, draw_keypoints, draw_masks, _draw_box, draw_boxes, draw_tracker_boxes
+from rcnnpose.utils import draw_boxes, draw_tracker_boxes
 from examples.tracker import tracker
 
 estimator = BodyPoseEstimator(pretrained=True)
