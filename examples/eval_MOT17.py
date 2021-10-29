@@ -16,7 +16,7 @@ from examples.tracker_utils import print_tracking_result, save_crop_bbox_img
 from rcnnpose.utils import draw_tracker_boxes
 import openpyxl
 #
-def beepsound():
+def beepsound(): # 전체 완료 후 알람
     fr = 400    # range : 37 ~ 32767
     du = 500     # 1000 ms ==1second
     sd.Beep(fr, du) # winsound.Beep(frequency, duration)

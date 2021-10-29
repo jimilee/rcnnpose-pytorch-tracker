@@ -1,0 +1,68 @@
+absl-py==0.12.0
+AMP==1.1.2
+asgiref==3.3.4
+cachetools==4.2.2
+caldav==0.1.4
+certifi==2021.5.30
+cffi @ file:///C:/ci/cffi_1613247269562/work
+chardet==4.0.0
+coverage==5.5
+cycler==0.10.0
+Cython==0.29.23
+dataclasses==0.8
+Django==3.2.3
+et-xmlfile==1.1.0
+google-auth==1.30.1
+google-auth-oauthlib==0.4.4
+grpcio==1.38.0
+idna==2.10
+importlib-metadata==4.3.1
+jdcal==1.4.1
+joblib @ file:///tmp/build/80754af9/joblib_1613502643832/work
+kiwisolver==1.3.1
+lxml==4.6.3
+Markdown==3.3.4
+matplotlib==3.3.4
+mkl-fft==1.3.0
+mkl-random==1.1.1
+mkl-service==2.3.0
+nose==1.3.7
+numpy @ file:///C:/ci/numpy_and_numpy_base_1603480701039/work
+oauthlib==3.1.0
+olefile==0.46
+opencv-contrib-python==4.5.2.52
+opencv-python==4.5.2.52
+openpyxl @ file:///tmp/build/80754af9/openpyxl_1615411699337/work
+pandas==1.1.5
+Pillow @ file:///C:/ci/pillow_1617386325740/work
+protobuf==3.17.1
+pyasn1==0.4.8
+pyasn1-modules==0.2.8
+pycocotools==2.0.2
+pycparser @ file:///tmp/build/80754af9/pycparser_1594388511720/work
+pyparsing==2.4.7
+python-dateutil==2.8.1
+pytz==2021.1
+PyYAML==5.4.1
+requests==2.25.1
+requests-oauthlib==1.3.0
+rsa==4.7.2
+scikit-learn @ file:///C:/ci/scikit-learn_1621370577507/work
+scipy @ file:///C:/ci/scipy_1597675683670/work
+seaborn==0.11.1
+six @ file:///C:/ci/six_1605187303045/work
+sqlparse==0.4.1
+tensorboard==2.5.0
+tensorboard-data-server==0.6.1
+tensorboard-plugin-wit==1.8.0
+thop==0.0.31.post2005241907
+threadpoolctl @ file:///tmp/tmp9twdgx9k/threadpoolctl-2.1.0-py3-none-any.whl
+torch==1.8.1
+torchvision==0.9.1
+tqdm==4.61.0
+typing-extensions==3.10.0.0
+urllib3==1.26.5
+vobject==0.9.6.1
+Werkzeug==2.0.1
+wincertstore==0.2
+zipp==3.4.1
