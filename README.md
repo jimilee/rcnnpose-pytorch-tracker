@@ -14,7 +14,7 @@ rcnnpose-pytorch-tracker/
         ㄴ tracker.py        -- tracker main
         ㄴ tracker_utils.py  -- tracker utils.
         ㄴ video_demo.py     -- demo(video)
-        ㄴ image_demo.py     -- demo(video)
+        ㄴ image_demo.py     -- demo(image)
     ㄴ rcnnpose
         ㄴ __init__.py
         ㄴ estimator.py
