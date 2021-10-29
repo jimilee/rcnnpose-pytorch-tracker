@@ -15,7 +15,6 @@ BASE_DIR = os.path.dirname(os.path.realpath(__file__))
 print(BASE_DIR)
 CHALLENGE_PATH = BASE_DIR +'/data/'+TARGET_DATA+'-train/SSL_MOT/'
 CKPT = 'MOT Aug( w cutout, jitter0.2)+Market C-Pose-GAN Aug (w cutout.pt'
-# CKPT = 'table3_simsiam.pt'
 SIMSIAM_PATH = BASE_DIR + '/simsiam/ckpt/'+CKPT
 
 PREDATA_PATH = osp.join(PROJECT_PATH, TARGET_DATA+'_dets')#MOT17, MOT20 det

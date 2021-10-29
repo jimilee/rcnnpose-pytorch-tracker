@@ -6,12 +6,9 @@ Author: Prasun Roy | CVPRU-ISICAL (http://www.isical.ac.in/~cvpr)
 GitHub: https://github.com/prasunroy/rcnnpose-pytorch
 
 """
-
-
 import numpy as np
 import torch
 import torchvision
-
 
 class BodyPoseEstimator(object):
     

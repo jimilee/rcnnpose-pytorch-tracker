@@ -17,7 +17,8 @@ from KalmanFilter import KalmanFilter
 np.set_printoptions(formatter={'float_kind': lambda x: "{0:0.3f}".format(x)})
 class tracker():
     def __init__(self):
-        self.model = SimsiamSA()
+        if torch.cuda.is_available():
+            self.model = SimsiamSA()
         self.trackers = {}
         self.online_trk = []
         self.last_id, self.max_tracker=0,1000
@@ -233,7 +234,7 @@ class tracker():
                     for i, score in x:
                         simsiam_score[int(i)] = score
                 simscore.append(simsiam_score)
-            for i, sim in enumerate(simscore): #i는 디텍션
+            for i, sim in enumerate(simscore): #i 는 디텍션
                 for j, trk in enumerate(self.online_trk):
                     if score_matrix[i][trk['id']] < self.hierarchy:
                         score_matrix[i][trk['id']] = 1 - (((1 - score_matrix[i][trk['id']])* self.SC1) + (sim[j] * self.SC2))
@@ -299,7 +300,7 @@ class tracker():
 
             target_det.append(det_data)
         #Simsiam
-        if len(target_det)>0:
+        if len(target_det)>0 and torch.cuda.is_available():
             score_matrix = self.get_score_matrix(target_det, score_matrix)
 
         if frame_cnt == 0:

@@ -12,7 +12,7 @@ estimator = BodyPoseEstimator(pretrained=True)
 videoclip = cv2.VideoCapture('media/mot16-11.wmv')
 fourcc = cv2.VideoWriter_fourcc(*'DIVX')
 #결과파일 stream 생성
-out = cv2.VideoWriter('result/test_Result_MOT.avi',fourcc, videoclip.get(cv2.CAP_PROP_FPS), (int(videoclip.get(cv2.CAP_PROP_FRAME_WIDTH)), int(videoclip.get(cv2.CAP_PROP_FRAME_HEIGHT))) )
+# out = cv2.VideoWriter('result/test_Result_MOT.avi',fourcc, videoclip.get(cv2.CAP_PROP_FPS), (int(videoclip.get(cv2.CAP_PROP_FRAME_WIDTH)), int(videoclip.get(cv2.CAP_PROP_FRAME_HEIGHT))) )
 total_proctime = 0.0
 #트래커
 st = tracker()
@@ -47,7 +47,7 @@ while videoclip.isOpened():
     # except:
     #     pass
     cv2.imwrite('result/img/'+'{0:04}'.format(frame_cnt) + '.jpg',overlay_tk)
-    out.write(overlay_tk)
+    # out.write(overlay_tk)
     cv2.imshow('Video Demo', overlay_tk)
     frame_cnt+=1
     if cv2.waitKey(20) & 0xff == 27: # exit if pressed `ESC`
