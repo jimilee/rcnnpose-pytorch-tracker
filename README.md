@@ -5,16 +5,6 @@
 ## Installation
 #### Prerequisites
 * Install [PyTorch](https://pytorch.org/get-started/locally/) `>= 1.2` with [torchvision](https://pytorch.org/get-started/locally/) `>= 0.4`
-#### Option 1: Install using pip
-```
-pip install git+https://github.com/prasunroy/rcnnpose-pytorch.git
-```
-#### Option 2: Install from source
-```
-git clone https://github.com/prasunroy/rcnnpose-pytorch.git
-cd rcnnpose-pytorch
-python setup.py install
-```
 
 ## Running examples
 ```
@@ -29,5 +19,3 @@ python tracker_demo.py
 * [Barlowtwins License](https://github.com/facebookresearch/barlowtwins/blob/main/LICENSE)
 <br />
 <br />
-
-**Made with** :heart: **and** :rabbit:
