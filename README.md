@@ -19,5 +19,3 @@ python tracker_demo.py
 * [Barlowtwins License](https://github.com/facebookresearch/barlowtwins/blob/main/LICENSE)
 <br />
 <br />
-
-**Made with** :heart: **and** :rabbit:
