@@ -5,25 +5,33 @@
 ## Directory
 
 ```
-rcnnpose-pytorch-tracker
-    ㄴ .idea
-    ㄴ examples
+rcnnpose-pytorch-tracker/
+    ㄴ .idea/
+    ㄴ examples/
+        ㄴ media/
+        ㄴ KalmanFilter.py   -- additional method
+        ㄴ eval_MOT17.py     -- evaluation entire MOT Challenge datasets
+        ㄴ tracker.py        -- tracker main
+        ㄴ tracker_utils.py  -- tracker utils.
+        ㄴ video_demo.py     -- demo(video)
+        ㄴ image_demo.py     -- demo(video)
     ㄴ rcnnpose
+        ㄴ __init__.py
+        ㄴ estimator.py
+        ㄴ utils.py 
     ㄴ simsiam
-    ㄴ [trackeval](https://github.com/JonathonLuiten/TrackEval/blob/master/docs/MOTChallenge-Official/Readme.md) 
-        ㄴ Fonts
-        ㄴ Prefabs
-        ㄴ Scripts
-        ㄴ Sprites
-    ㄴ Scenes
+        ㄴ models/
+        ㄴ simsiam_standalone.py 
+    ㄴ trackeval
+
 ```
 
 ## Installation
 #### Prerequisites
 * Install [PyTorch](https://pytorch.org/get-started/locally/) `>= 1.2` with [torchvision](https://pytorch.org/get-started/locally/) `>= 0.4`
-* [CKPT](https://drive.google.com/file/d/1tYw3Ikdm24kJT9SJwnbbDCYsCMxgvC9l/view?usp=sharing) unzip at ./simsiam/ckpt/
+* Download [ckpt](https://drive.google.com/file/d/1tYw3Ikdm24kJT9SJwnbbDCYsCMxgvC9l/view?usp=sharing) and unzip at ./simsiam/ckpt/
 * [CUDA](https://developer.nvidia.com/cuda-toolkit-archive) `>= 10.0` , [Cudnn](https://developer.nvidia.com/rdp/cudnn-download) `>= 7.6.5` (test env)
-
+* [TrackEval](https://github.com/JonathonLuiten/TrackEval/blob/master/docs/MOTChallenge-Official/Readme.md) -> officail python evaluation code & data
 
 ```
 git clone https://github.com/jimilee/rcnnpose-pytorch-tracker.git
