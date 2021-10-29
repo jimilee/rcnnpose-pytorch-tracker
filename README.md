@@ -8,7 +8,11 @@
 * [CKPT](https://drive.google.com/file/d/1tYw3Ikdm24kJT9SJwnbbDCYsCMxgvC9l/view?usp=sharing) unzip at ./simsiam/ckpt/
 * [CUDA](https://developer.nvidia.com/cuda-toolkit-archive) `>= 10.0` , [Cudnn](https://developer.nvidia.com/rdp/cudnn-download) `>= 7.6.5` (test env)
 
-## Git clone
+
+```
+git clone https://github.com/jimilee/rcnnpose-pytorch-tracker.git
+```
+
 ```
 pip install -r requirements.txt
 ```
