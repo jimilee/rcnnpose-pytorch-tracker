@@ -6,6 +6,9 @@
 #### Prerequisites
 * Install [PyTorch](https://pytorch.org/get-started/locally/) `>= 1.2` with [torchvision](https://pytorch.org/get-started/locally/) `>= 0.4`
 
+$ pip install -r requirements.txt
+
+
 ## Running examples
 ```
 cd examples
