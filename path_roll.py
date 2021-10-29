@@ -1,4 +1,5 @@
 import os.path as osp
+import os
 import pathlib
 
 
@@ -8,17 +9,18 @@ import pathlib
 TARGET_DATASET = {'MOT20'}
 TARGET_DATA = 'MOT20'
 
-#CHALLENGE_PATH = 'C:/Users/CVPR_JIMILEE/Desktop/motchallenge-devkit/res/MOT16/data/'
-CHALLENGE_PATH = 'E:/_workspace/rcnnpose-pytorch-tracker/data/trackers/mot_challenge/'+TARGET_DATA+'-train/SSL_MOT/'
+PROJECT_PATH = pathlib.Path(__file__).parent.absolute()
+BASE_DIR = os.path.dirname(os.path.realpath(__file__))
+
+print(BASE_DIR)
+CHALLENGE_PATH = BASE_DIR +'/data/'+TARGET_DATA+'-train/SSL_MOT/'
 CKPT = 'MOT Aug( w cutout, jitter0.2)+Market C-Pose-GAN Aug (w cutout.pt'
 # CKPT = 'table3_simsiam.pt'
-SIMSIAM_PATH = 'E:/_workspace/rcnnpose-pytorch-tracker/simsiam/ckpt/'+CKPT
+SIMSIAM_PATH = BASE_DIR + '/simsiam/ckpt/'+CKPT
 
-PROJECT_PATH = pathlib.Path(__file__).parent.parent.parent.absolute()
-
-PREDATA_PATH = osp.join(PROJECT_PATH, TARGET_DATA+'_dets')#det
+PREDATA_PATH = osp.join(PROJECT_PATH, TARGET_DATA+'_dets')#MOT17, MOT20 det
 # PREDATA_PATH = osp.join(PROJECT_PATH, 'MOT16_dets')#det
-#PREDATA_PATH = osp.join(PROJECT_PATH, 'MOT20', 'train')#gt
+#PREDATA_PATH = osp.join(PROJECT_PATH, 'MOT20', 'train')#gt (for making traindata)
 
 # Absolute path where datasets and processed data (e.g. precomputed embeddings) will be stored
 DATA_PATH = None
@@ -41,7 +43,9 @@ updateTH = 0.5
 ageTH = 20
 
 hierarchy = 0.9 #MOT20
-
+'''
+Fol MOT Challenge Eval
+'''
 EVAL_CONFIG = {'USE_PARALLEL': False,
                'NUM_PARALLEL_CORES': 1,
                'BREAK_ON_ERROR': True,
@@ -77,52 +81,9 @@ DATASET_CONFIG = {'PRINT_CONFIG': False,
                   'SKIP_SPLIT_FOL': False}
 
 METRICS_CONFIG = {'METRICS': ['CLEAR', 'Identity'], 'THRESHOLD': 0.5, 'PRINT_CONFIG': False}
-'''
-#MOT20
-T = {'01':[-1, 0.5, 0.5], #2 static
-     '02':[-1, 0.5, 0.5], ##train static
-     '03':[-1, 0.5, 0.5], #4 static
-     '05':[-1, 0.5, 0.5], ## fix moving
 
-     '04':[0, 0.5, 0.5], ## fix static
-     '06':[0, 0.5, 0.5], #5 moving
-     '07':[0, 0.5, 0.5], #10 moving
-     '08':[0, 0.5, 0.5], #11 static
-     }
-'''
-'''
-T = {'02':[0, 0.5, 0.5], ##train static
-     '04':[0, 0.5, 0.5], ## fix static
-     '05':[-1, 0.4, 0.6], ## fix moving
-     '09':[0, 0.2, 0.8], ## static
-     '10':[-1, 0.0, 1.0], ## fix moving
-     '11':[-1, 0.4, 0.6], ## moving
-     '13':[-1, 0.3, 0.7], ## moving
+Kalman = False
 
-     '01':[0, 0.5, 0.5], #2 static
-     '03':[0, 0.5, 0.5], #4 static
-     '06':[-1, 0.4, 0.6], #5 moving
-     '07':[-1, 0.0, 1.0], #10 moving
-     '08':[0, 0.2, 0.8], #11 static
-     '12':[-1, 0.4, 0.6], #11 moving
-     '14':[-1, 0.3, 0.7]} #13 moving
-'''
-Kalman = True
-'''
-T = {
- #   '01': [0, 0.0, 1.0],
-    '02': [0, 0.1, 0.9]##best for MOT17
- #   '03': [0, 0.2, 0.8],
- #   '04': [0, 0.3, 0.7],
- #   '05': [0, 0.4, 0.6], ##best for MOT20
- #   '06': [0, 0.5, 0.5],
- #   '07': [0, 0.6, 0.4],
- #   '08': [0, 0.7, 0.3],
- #   '09': [0, 0.8, 0.2],
- #   '10': [0, 0.9, 0.1],
- #   '11': [0, 1.0, 0.0],
-}
-'''
 
 T = {
     '01': [0.4, 0.4, 0.6],

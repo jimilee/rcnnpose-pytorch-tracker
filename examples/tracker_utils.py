@@ -38,6 +38,25 @@ def centroid_box(A, B):
     C = (A + B)/2
     return np.array(C, dtype=int)
 
+def bbox_reloc(det, shape):
+    x1, y1 = det[:2]
+    x2, y2 = det[2:]
+
+    if x1 < 0: x1 = 0
+    if y1 < 0: y1 = 0
+    if x1 > shape[1]: x1 = shape[1] - 1
+    if y1 > shape[0]: y1 = shape[0] - 1
+
+    if x2 < 0: x2 = 0
+    if y2 < 0: y2 = 0
+    if x2 > shape[1]: x2 = shape[1]
+    if y2 > shape[0]: y2 = shape[0]
+    if x2 - x1 <= 2:
+        return None
+    elif y2 - y1 <= 2:
+        return None
+    return np.array([x1, y1, x2, y2], dtype=int)
+
 def atan2(A,B):
     Ax1, Ay1, Ax2, Ay2 = A #target
     Bx1, By1, Bx2, By2 = B #tracker
@@ -143,13 +162,11 @@ def save_crop_bbox_img(src, bboxes, this_frame, seq):
 # 챌린지 출력파일 저장.
 def print_tracking_result(data, path, this_frame):
     f = open(path, 'a')
-    # print('this_frame : ', this_frame)
     for p_data in data:
         x1, y1, x2, y2 = p_data['box']
-        # if not self.occluded_tracker(this_frame, p_data['id'], 0.5):
         p_data_width = int(x2 - x1)
         p_data_height = int(y2 - y1)
-        # print("{0},{1},{2},{3},{4},{5},-1,-1,-1,-1".format(p_data['frame'], p_data['id'], p_data['sx'], p_data['sy'], p_data_width, p_data_height))
+
         if this_frame <= p_data['frame'] + 2:
             f.write("{0}, {1}, {2}, {3}, {4}, {5}, -1, -1, -1, -1\n".format(this_frame, p_data['id'], x1,
                                                                             y1, p_data_width,

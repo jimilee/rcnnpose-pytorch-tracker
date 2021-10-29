@@ -7,7 +7,7 @@ import random, math, time, sys
 import path_roll as roll
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from tracker_utils import cal_histogram, cos_sim, euclid_sim, ext_ovl_sim, print_tracking_result, centroid_box, \
-    convert_img_tensor, ext_dist_sim, ext_atan2_sim, atan2, get_center_pt, center_pt_2_bbox
+    convert_img_tensor, ext_dist_sim, ext_atan2_sim, atan2, get_center_pt, center_pt_2_bbox, bbox_reloc
 from scipy.optimize import linear_sum_assignment
 from torchvision import transforms
 from PIL import Image
@@ -15,7 +15,6 @@ from simsiam.simsiam_standalone import SimsiamSA
 from KalmanFilter import KalmanFilter
 
 np.set_printoptions(formatter={'float_kind': lambda x: "{0:0.3f}".format(x)})
-challenge_path = 'MOT16-11.txt'
 class tracker():
     def __init__(self):
         self.model = SimsiamSA()
@@ -25,8 +24,8 @@ class tracker():
         self.minmax_scaler = MinMaxScaler()
         self.stand_scaler = StandardScaler()
 
-    def init_id_tracker(self, max_tracker, test_idx):
-        print('init...')
+    def init_id_tracker(self, max_tracker = 50, test_idx = '01'):
+        print('init trackers...')
         self.T1, self.T2, self.T3 = roll.T[test_idx]
 
         self.detTH = roll.detTH  # MOT16
@@ -34,7 +33,6 @@ class tracker():
         self.updateTH = roll.updateTH
         self.ageTH = roll.ageTH
         self.hierarchy = roll.hierarchy
-
 
         self.SC1 = roll.SC1 #0.4
         self.SC2 = 1 - self.SC1
@@ -102,7 +100,6 @@ class tracker():
         if update and t_id is not None:
             rgb = self.trackers[t_id]['rgb']
             #tracker_atan = atan2(target_['box'], self.trackers[t_id]['box'])
-
             tracker_KF = self.trackers[t_id]['KF']
             tracker_cp = get_center_pt(self.trackers[t_id]['box'])
             target_cp = get_center_pt(target_['box'])
@@ -116,7 +113,7 @@ class tracker():
                 if self.Kalman: #static
                     tracker_bbox = center_pt_2_bbox(target_['box'],x,y)
                 else:
-                    tracker_bbox = self.trackers[t_id]['box']
+                    tracker_bbox = target_['box']
                 trk_occ = False
 
             else:
@@ -255,9 +252,7 @@ class tracker():
         src = image.copy()
         matrix_size = len(det_boxes) if len(self.trackers) < len(det_boxes) else len(self.trackers)
         score_matrix = np.full((matrix_size + 1, matrix_size + 1), 10.0, dtype=float)
-        # print(
-        #     '\n Start frame : {0} ===================================================================================='.format(
-        #         frame_cnt))
+
         for i, det in enumerate(det_boxes):
             x1, y1 = det[:2]
             x2, y2 = det[2:]
@@ -274,10 +269,10 @@ class tracker():
             if x2 - x1 <= 2: continue
             elif y2 - y1 <= 2: continue
 
-            det = np.array([x1,y1,x2,y2], dtype=int)
+            det = np.array([x1, y1, x2, y2], dtype=int)
+
             #if (x2-x1) < 30 or (y2-y1) < 30:
             #    continue
-            # feat = src.crop((max(x1, 0), max(y1, 0), min(x2, src.size[0]), min(y2, src.size[1])))
             feat = src[y1:y2, x1:x2]
             roi_hsv = cv2.cvtColor(feat, cv2.COLOR_BGR2HSV)
             tensor_src = convert_img_tensor(feat)
@@ -287,7 +282,6 @@ class tracker():
             ranges = [0, 180, 0, 256]
             det_hist = cv2.calcHist([roi_hsv], channels, None, [90, 128], ranges)
 
-            # print(len(det_boxes))
             det_data = {'id': -1,
                         'frame': frame_cnt,
                         'box': det,
@@ -299,18 +293,12 @@ class tracker():
                 continue
 
             dist_score, euclid_score, degree_score = self.bbox_sim_score(det_data)
-            # # sim_score = self.simsiam_sim_score(tensor_src)
-            # # print(len(dist_score), len(sim_score), len(self.online_trk))
+
             for j, trk in enumerate(self.online_trk):
-                # try:
-                #if dist_score[j] > 0.6 :
                 score_matrix[i][trk['id']] = 1 - ((dist_score[j] * self.T2) + (euclid_score[j] * self.T3))
 
-                # except:
-                #     print(j,i ,'is passed.')
-                #     pass
             target_det.append(det_data)
-        #simsiam
+        #Simsiam
         if len(target_det)>0:
             score_matrix = self.get_score_matrix(target_det, score_matrix)
 
@@ -319,12 +307,10 @@ class tracker():
             return self.online_trk
 
         score_matrix[np.isnan(score_matrix)] = 10.0
-        # print(score_matrix)
+
         row_ind, col_ind = linear_sum_assignment(score_matrix)  # hungarian.
         hungarian_result = col_ind[:len(target_det)]
-        # print(row_ind)
-        # print(col_ind)
-        # print(hungarian_result)
+
         # id -> idx 로 저장해야됨.
         for idx, id in enumerate(hungarian_result):  # id_update.
             if idx < len(target_det) and id < self.max_tracker:
