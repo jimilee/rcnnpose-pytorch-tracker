@@ -2,6 +2,22 @@
 # RCNNPose PyTorch + Multiple Object Tracker
 **Mask R-CNN and Keypoint R-CNN wrapper + BYOL and SimSiam wrapper for Multiple Object Tracking with PyTorch.**
 
+## Directory
+
+```
+rcnnpose-pytorch-tracker
+    ㄴ .idea
+    ㄴ examples
+    ㄴ rcnnpose
+    ㄴ simsiam
+    ㄴ [trackeval](https://github.com/JonathonLuiten/TrackEval/blob/master/docs/MOTChallenge-Official/Readme.md) 
+        ㄴ Fonts
+        ㄴ Prefabs
+        ㄴ Scripts
+        ㄴ Sprites
+    ㄴ Scenes
+```
+
 ## Installation
 #### Prerequisites
 * Install [PyTorch](https://pytorch.org/get-started/locally/) `>= 1.2` with [torchvision](https://pytorch.org/get-started/locally/) `>= 0.4`
